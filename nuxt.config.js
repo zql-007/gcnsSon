@@ -26,7 +26,7 @@ module.exports = {
       { name: 'viewport', content: 'width=device-width, initial-scale=1' }, // 响应式视图配置
       { hid: 'description', name: 'description', content: pkg.description } // 页面描述，用于SEO
     ],
-    link: [{ rel: 'icon', type: 'image/x-icon', href: '/img_1.png' }] // 网站图标
+    link: [{ rel: 'icon', type: 'image/x-icon', href: '/IMIP.ico' }] // 网站图标
   },
 
   /*
