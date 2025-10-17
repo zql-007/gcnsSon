@@ -1,5 +1,6 @@
 <template>
-  <div>
+  <div
+    class="contentBox">
     <!--    form表单-->
     <el-form
       :inline="true"
@@ -1093,6 +1094,7 @@
 // import { resourceListNoPage } from '~/lib/system'
 // import { deleteFile } from '@/lib/EquipmentLedger'
 export default {
+  // layout: 'test',
   name: 'EquipPrecisManage-standard',
   components: {
     // UserSelect1
@@ -1593,6 +1595,9 @@ export default {
 </script>
 
 <style lang="less">
+.contentBox {
+  padding: 15px;
+}
 .el-table-filter {
   height: 300px;
   overflow: auto;

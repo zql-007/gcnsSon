@@ -402,6 +402,7 @@ import { date2ymdhs2, getFormatDate_XLSX } from '@/utils/dateUtil'
 // } from '@/lib/RiskManageApi'
 
 export default {
+  // layout: 'test',
   name: 'riskManagement-riskInformationFill',
   data() {
     return {
@@ -1327,6 +1328,7 @@ export default {
 
 <style scoped lang="less">
 .contentBox {
+  padding: 15px;
   .el-form-header {
     display: flex;
     justify-content: flex-end;

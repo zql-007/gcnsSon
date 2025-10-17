@@ -1,4 +1,5 @@
 <template>
+  <!--  <div></div>-->
   <!--  <img
     style="width: 100%;height: 100%"
     src="../assets/IMIP-welcome.png"
@@ -11,6 +12,7 @@
 <script>
 import HomePage from '@/pages/system/org.vue'
 export default {
+  layout: 'test',
   name: 'App',
   components: { HomePage }
 }

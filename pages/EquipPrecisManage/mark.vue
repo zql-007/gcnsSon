@@ -1,5 +1,6 @@
 <template>
-  <div>
+  <div
+    class="contentBox">
     <!--    表单区域-->
     <el-form
       :inline="true"
@@ -159,6 +160,7 @@ import tasilyEcharts from '@/components/TasilyEcharts'
 //   findHistoryByStandardID
 // } from '@/lib/ApiURL01'
 export default {
+  // layout: 'test',
   name: 'EquipPrecisManage-mark',
   components: {
     tasilyEcharts
@@ -510,6 +512,9 @@ export default {
 </script>
 
 <style lang="less" scoped>
+.contentBox {
+  padding: 15px;
+}
 /deep/.el-form.el-form--inline {
   height: 36px;
 }

@@ -450,7 +450,7 @@ import {
   getYearFirstDayLast
 } from '@/utils/dateUtil'
 export default {
-  layout: 'test',
+  // layout: 'test',
   name: 'FactoryBoard3',
   components: {
     tasilyEcharts
@@ -1502,6 +1502,9 @@ export default {
 </script>
 
 <style scoped lang="less">
+.contentBox {
+  padding: 15px;
+}
 //时间组件样式
 /deep/.el-form.el-form--inline {
   height: 28px;

@@ -63,9 +63,9 @@ module.exports = {
     // { src: '@/plugins/qiankun-life-cycle.js', ssr: false }
   ],
 
-  MFE: {
+  /*MFE: {
     force: true
-  },
+  },*/
   /*
   ** Nuxt.js modules,配置 Nuxt.js 模块，扩展项目功能（这里引入了官方的 Axios 模块）
   */

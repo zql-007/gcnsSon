@@ -739,6 +739,7 @@ import {
 } from '@/utils/dateUtil'
 
 export default {
+  // layout: 'test',
   name: 'HistoryRiskInformation',
   data() {
     return {
@@ -1538,6 +1539,10 @@ export default {
 </script>
 
 <style scoped lang="less">
+.contentBox {
+  padding: 15px;
+}
+
 //表格外层卡片样式
 .CardTable {
   margin-top: 16px;

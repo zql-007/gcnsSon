@@ -427,6 +427,7 @@ import tasilyEcharts from '@/components/TasilyEcharts'
 //   iomPrecisionManagementController_trendAnalysis
 // } from '@/lib/ApiURL01'
 export default {
+  // layout: 'test',
   name: 'EquipPrecisManage-informat',
   components: {
     tasilyEcharts
@@ -1062,6 +1063,9 @@ export default {
 </script>
 
 <style scoped lang="less">
+.contentBox {
+  padding: 15px;
+}
 /deep/ input::-webkit-inner-spin-button,
 input::-webkit-outer-spin-button {
   -webkit-appearance: none !important;

@@ -1089,6 +1089,7 @@ import {
 import moment from 'moment'
 
 export default {
+  // layout: 'test',
   name: 'HistoryDangerInformation',
   data() {
     return {

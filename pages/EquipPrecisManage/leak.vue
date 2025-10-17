@@ -1,5 +1,6 @@
 <template>
-  <div>
+  <div
+    class="contentBox">
     <!--    form表单-->
     <el-form
       :inline="true"
@@ -311,6 +312,7 @@ import moment from 'moment'
 //   iomPrecisionManagementController_doBatchSaveForgetItem
 // } from '@/lib/ApiURL01'
 export default {
+  // layout: 'test',
   name: 'EquipPrecisManage-leak',
   data() {
     return {
@@ -677,6 +679,9 @@ export default {
 </script>
 
 <style lang="less" scoped>
+.contentBox {
+  padding: 15px;
+}
 /deep/.el-form.el-form--inline {
   height: 36px;
 }

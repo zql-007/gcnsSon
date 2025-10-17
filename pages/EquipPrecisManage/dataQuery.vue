@@ -1,5 +1,6 @@
 <template>
-  <div>
+  <div
+    class="contentBox">
     <el-form
       :inline="true"
       :model="form"
@@ -545,6 +546,7 @@ import tasilyEcharts from '@/components/TasilyEcharts'
 // } from '@/lib/ApiURL01'
 // import axios from 'axios'
 export default {
+  // layout: 'test',
   name: 'EquipPrecisManage-dataQuery',
   components: {
     tasilyEcharts
@@ -1371,6 +1373,9 @@ export default {
 </script>
 
 <style lang="less" scoped>
+.contentBox {
+  padding: 15px;
+}
 /deep/.el-form.el-form--inline {
   height: 36px;
 }

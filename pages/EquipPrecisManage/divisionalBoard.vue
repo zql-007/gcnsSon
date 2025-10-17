@@ -1,5 +1,6 @@
 <template>
-  <div>
+  <div
+    class="contentBox">
     <!-- 表单区域 -->
     <div style="display: flex;justify-content: space-between">
       <el-date-picker
@@ -244,6 +245,7 @@ import {
 // import { post } from '@/lib/Util'
 
 export default {
+  // layout: 'test',
   name: 'EquipPrecisManage-divisionalBoard',
   components: {
     tasilyEcharts
@@ -639,6 +641,9 @@ export default {
 </script>
 
 <style scoped lang="less">
+.contentBox {
+  padding: 15px;
+}
 /deep/.el-date-editor .el-range__icon {
   margin-left: 1px;
   font-size: 14px;
