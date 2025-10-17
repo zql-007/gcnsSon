@@ -12,7 +12,7 @@
 <script>
 import HomePage from '@/pages/system/org.vue'
 export default {
-  layout: 'test',
+  // layout: 'test',
   name: 'App',
   components: { HomePage }
 }
