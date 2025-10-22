@@ -195,7 +195,7 @@
           上报分厂
         </el-button>
       </el-form-item>
-      <el-form-item v-if="isShowBusi">
+      <!--      <el-form-item v-if="isShowBusi">
         <el-button
           type="primary"
           icon="el-icon-thumb"
@@ -203,7 +203,7 @@
         >
           上报事业部
         </el-button>
-      </el-form-item>
+      </el-form-item>-->
     </el-form>
 
     <el-card class="CardTable">
