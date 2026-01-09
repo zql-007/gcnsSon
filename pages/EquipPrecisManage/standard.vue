@@ -1,6 +1,5 @@
 <template>
-  <div
-    class="contentBox">
+  <div class="contentBox">
     <!--    form表单-->
     <el-form
       :inline="true"
@@ -279,26 +278,23 @@
             >
               修改
             </el-button>
-            <el-popconfirm
-              title="是否确认删除？"
+            <el-button
+              :disabled="deleteDisabled"
+              size="mini"
+              type="danger"
+              class="buttonTable"
+              @click="deleteDataRow(scope.row)"
             >
-              <el-button
-                slot="reference"
-                :disabled="deleteDisabled"
-                size="mini"
-                type="danger"
-                style="margin-left: 8px"
-                class="buttonTable"
-                @click="deleteDataRow(scope.row)"
-              >
-                删除
-              </el-button>
-            </el-popconfirm>
+              删除
+            </el-button>
           </template>
         </el-table-column>
       </el-table>
       <!--    分页-->
       <div style="display: flex;justify-content: space-between">
+        <!--        <div style="margin-top: 20px">
+          <span style="color: #ff2855">注：</span>生产厂需要调整设备精度标准在南钢OA发起通用流程报设备处审批。
+        </div>-->
         <el-pagination
           :total="total"
           :pager-count="5"
@@ -321,7 +317,7 @@
       title="新增信息"
       width="40%"
     >
-      <div style="margin-bottom: 10px"><span>标准信息</span></div>
+      <span>标准信息</span>
       <hr>
       <!--      标准信息form表单-->
       <el-form
@@ -464,6 +460,14 @@
             style="width: 100px"
           ></el-input>
         </el-form-item>
+        <!--        <el-form-item
+          label="失效值"
+          style="margin-top: 15px">
+          <el-input
+            v-model="formInline.standard.standardValueDisable"
+            placeholder="请输入"
+            style="width: 215px"></el-input>
+        </el-form-item>-->
         <el-form-item
           label="测量手段"
           style="margin-top: 15px"
@@ -521,6 +525,19 @@
           label="责任人"
           style="margin-top: 15px"
         >
+          <!--          <el-select
+            v-model="formInline.standard.personLiableName"
+            clearable
+            filterable
+            placeholder="请选择"
+            style="width: 214px"
+            @change="selectDutyMan">
+            <el-option
+              v-for="item in departmentManList"
+              :key="item.id"
+              :label="item.userName"
+              :value="item.userNo"></el-option>
+          </el-select>-->
           <user-select1
             v-model="formInline.standard.personLiableName"
             @on-change="changeCharterUser"
@@ -543,11 +560,10 @@
     <el-dialog
       :visible.sync="dialogVisibleLook"
       :before-close="handleCloseLook"
-      class="dialogClass"
       title="查看信息"
       width="40%"
     >
-      <div style="margin-bottom: 10px"><span>标准信息</span></div>
+      <span>标准信息</span>
       <hr>
       <!--      标准信息form表单-->
       <el-form
@@ -691,6 +707,14 @@
             style="width: 100px"
           ></el-input>
         </el-form-item>
+        <!--        <el-form-item
+          label="失效值"
+          style="margin-top: 15px">
+          <el-input
+            v-model="formInline.standard.standardValueDisable"
+            placeholder="请输入"
+            style="width: 215px"></el-input>
+        </el-form-item>-->
         <el-form-item
           label="测量手段"
           style="margin-top: 15px"
@@ -783,11 +807,10 @@
     <el-dialog
       :visible.sync="dialogVisibleModify"
       :before-close="handleCloseModify"
-      class="dialogClass"
       title="修改信息"
       width="40%"
     >
-      <div style="margin-bottom: 10px"><span>标准信息</span></div>
+      <span>标准信息</span>
       <hr>
       <!--      标准信息form表单-->
       <el-form
@@ -930,6 +953,14 @@
             style="width: 100px"
           ></el-input>
         </el-form-item>
+        <!--        <el-form-item
+          label="失效值"
+          style="margin-top: 15px">
+          <el-input
+            v-model="formInline.standard.standardValueDisable"
+            placeholder="请输入"
+            style="width: 215px"></el-input>
+        </el-form-item>-->
         <el-form-item
           label="测量手段"
           style="margin-top: 15px"
@@ -984,6 +1015,15 @@
           </el-select>
         </el-form-item>
         <el-form-item
+          label="责任人"
+          style="margin-top: 15px"
+        >
+          <user-select1
+            v-model="formInline.standard.personLiableName"
+            @on-change="changeCharterUser"
+          />
+        </el-form-item>
+        <el-form-item
           label="工号"
           style="margin-top: 15px"
         >
@@ -993,15 +1033,6 @@
             placeholder="请输入"
             style="width: 215px"
           ></el-input>
-        </el-form-item>
-        <el-form-item
-          label="责任人"
-          style="margin-top: 15px"
-        >
-          <user-select1
-            v-model="formInline.standard.personLiableName"
-            @on-change="changeCharterUser"
-          />
         </el-form-item>
       </el-form>
       <!--      修改对话框取消、确定底部按钮-->
@@ -1017,7 +1048,7 @@
       </span>
     </el-dialog>
     <!--    单行删除对话框-->
-    <!--    <el-dialog
+    <el-dialog
       :visible.sync="centerDialogVisible"
       title="提示"
       width="30%"
@@ -1034,7 +1065,7 @@
           @click="deleteDataRow1"
         >确 定</el-button>
       </span>
-    </el-dialog>-->
+    </el-dialog>
     <!--    批量删除对话框-->
     <el-dialog
       :visible.sync="deleteUserFormVisible"
@@ -1061,43 +1092,41 @@
 </template>
 
 <script>
-// import { get, post } from '@/lib/Util'
-// import {
-//   getProductionLineAreaInfo,
-//   getBusinessUnitInfo,
-//   getProductionLineInfo,
-//   getDutyDepartmentInfo,
-//   getDeviceInfo,
-//   getMeasureTypeInfo,
-//   doUpdate,
-//   doDelete,
-//   getStandardUtilInfo,
-//   getStandardInfo,
-//   doSave,
-//   findAllStanders,
-//   findAreaByLineID,
-//   findDeviceByAreaID,
-//   exportData,
-//   findPersonLiableNameList,
-//   importExcel,
-//   findDeviceByDepartID,
-//   userFindAllUser,
-//   getPersonSearchVoList,
-//   getProductionLineSearchVoList,
-//   getProductionLineAreaSearchVoList,
-//   getMeasureTypeSearchVoList,
-//   getDutyDepartmentSearchVoList,
-//   getDeviceSearchVoList
-// } from '@/lib/ApiURL01'
-// import UserSelect1 from '@/components/business/userSelect1'
-// import { queryWorkDeptInfo } from '@/lib/RiskManageApi'
-// import { resourceListNoPage } from '~/lib/system'
-// import { deleteFile } from '@/lib/EquipmentLedger'
+import { get, post } from '@/lib/Util'
+import {
+  getProductionLineAreaInfo,
+  getBusinessUnitInfo,
+  getProductionLineInfo,
+  getDutyDepartmentInfo,
+  getDeviceInfo,
+  getMeasureTypeInfo,
+  doUpdate,
+  doDelete,
+  getStandardUtilInfo,
+  getStandardInfo,
+  doSave,
+  findAllStanders,
+  findAreaByLineID,
+  findDeviceByAreaID,
+  exportData,
+  findPersonLiableNameList,
+  importExcel,
+  findDeviceByDepartID,
+  userFindAllUser,
+  getPersonSearchVoList,
+  getProductionLineSearchVoList,
+  getProductionLineAreaSearchVoList,
+  getMeasureTypeSearchVoList,
+  getDutyDepartmentSearchVoList,
+  getDeviceSearchVoList
+} from '@/lib/EquipPrecisManage/ApiURL01'
+import UserSelect1 from '@/components/business/userSelect1'
+import { resourceListNoPage } from '~/lib/system'
 export default {
   // layout: 'test',
   name: 'EquipPrecisManage-standard',
   components: {
-    // UserSelect1
+    UserSelect1
   },
   data() {
     return {
@@ -1110,15 +1139,15 @@ export default {
       /*----------------------------*/
       userNameId: '', //用于存放‘016452|马洪浩|15895851362’数据格式
       loading: false,
-      checkDisabled: false,
-      modifyDisabled: false,
-      deleteDisabled: false,
+      checkDisabled: true,
+      modifyDisabled: true,
+      deleteDisabled: true,
       addDisabled: false,
       importDisabled: false,
-      userNo: 'testUser', // 模拟用户编号
+      userNo: this.$store.getters['user/getUserNo'],
       eqDangersFileList: [],
       labelPosition: 'right',
-      lookToDisable: true, //查看操作表单只读不能修改（禁用
+      lookToDisable: false, //查看操作表单只读不能修改（禁用
       dialogVisible: false, //弹出新增对话框是否显示
       dialogVisibleLook: false, //弹出查看对话框是否显示
       dialogVisibleModify: false, //弹出修改对话框是否显示
@@ -1171,439 +1200,662 @@ export default {
         },
         scoreList: []
       },
-      businessList: [], //事业部
-      productionList: [
-        { id: '1', name: '产线A' },
-        { id: '2', name: '产线B' },
-        { id: '3', name: '产线C' }
-      ], //产线 - 假数据
-      productionAreaList: [
-        { id: '1', name: '区域1' },
-        { id: '2', name: '区域2' },
-        { id: '3', name: '区域3' }
-      ], //区域 - 假数据
-      departmentList: [
-        { id: '1', name: '生产部' },
-        { id: '2', name: '设备部' },
-        { id: '3', name: '质检部' }
-      ], //责任部门 - 假数据
-      deviceList: [
-        { id: '1', name: '设备A' },
-        { id: '2', name: '设备B' },
-        { id: '3', name: '设备C' }
-      ], //设备 - 假数据
-      tableList: [
-        {
-          id: '1',
-          productionLineName: '产线A',
-          productionLineAreaName: '区域1',
-          deviceName: '设备A',
-          itemName: '精度检测',
-          standardValue: '0.01',
-          standardValuePos: '0.02',
-          standardValueNeg: '-0.02',
-          standardUnitName: 'mm',
-          measureType: '激光测量',
-          checkCycle: '1',
-          dutyDepartmentName: '质检部',
-          personLiableID: '1001',
-          personLiableName: '张三'
-        },
-        {
-          id: '2',
-          productionLineName: '产线B',
-          productionLineAreaName: '区域2',
-          deviceName: '设备B',
-          itemName: '压力测试',
-          standardValue: '100',
-          standardValuePos: '110',
-          standardValueNeg: '90',
-          standardUnitName: 'MPa',
-          measureType: '压力传感器',
-          checkCycle: '2',
-          dutyDepartmentName: '生产部',
-          personLiableID: '1002',
-          personLiableName: '李四'
-        },
-        {
-          id: '1',
-          productionLineName: '产线A',
-          productionLineAreaName: '区域1',
-          deviceName: '设备A',
-          itemName: '精度检测',
-          standardValue: '0.01',
-          standardValuePos: '0.02',
-          standardValueNeg: '-0.02',
-          standardUnitName: 'mm',
-          measureType: '激光测量',
-          checkCycle: '1',
-          dutyDepartmentName: '质检部',
-          personLiableID: '1001',
-          personLiableName: '张三'
-        },
-        {
-          id: '2',
-          productionLineName: '产线B',
-          productionLineAreaName: '区域2',
-          deviceName: '设备B',
-          itemName: '压力测试',
-          standardValue: '100',
-          standardValuePos: '110',
-          standardValueNeg: '90',
-          standardUnitName: 'MPa',
-          measureType: '压力传感器',
-          checkCycle: '2',
-          dutyDepartmentName: '生产部',
-          personLiableID: '1002',
-          personLiableName: '李四'
-        },
-        {
-          id: '1',
-          productionLineName: '产线A',
-          productionLineAreaName: '区域1',
-          deviceName: '设备A',
-          itemName: '精度检测',
-          standardValue: '0.01',
-          standardValuePos: '0.02',
-          standardValueNeg: '-0.02',
-          standardUnitName: 'mm',
-          measureType: '激光测量',
-          checkCycle: '1',
-          dutyDepartmentName: '质检部',
-          personLiableID: '1001',
-          personLiableName: '张三'
-        },
-        {
-          id: '2',
-          productionLineName: '产线B',
-          productionLineAreaName: '区域2',
-          deviceName: '设备B',
-          itemName: '压力测试',
-          standardValue: '100',
-          standardValuePos: '110',
-          standardValueNeg: '90',
-          standardUnitName: 'MPa',
-          measureType: '压力传感器',
-          checkCycle: '2',
-          dutyDepartmentName: '生产部',
-          personLiableID: '1002',
-          personLiableName: '李四'
-        }
-      ], //标准维护table表格 - 假数据
+      productionList: [], //产线
+      productionAreaList: [], //区域
+      departmentList: [], //责任部门
+      deviceList: [], //设备
+      tableList: [], //标准维护table表格
       //测量方式
-      measureTypeList: [
-        { id: '1', name: '激光测量' },
-        { id: '2', name: '人工检测' },
-        { id: '3', name: '传感器监测' }
-      ],
+      measureTypeList: [],
       //标准维护下拉框
       form: {
         itemName: '',
-        businessUnitId: '',
         productionLineId: '',
         productionLineAreaId: '', //区域
         measureTypeId: '', //测量方式
         dutyDepartmentId: '', //责任部门
         deviceId: '', //设备
-        pageIndex: 1,
-        pageSize: 10,
+        pageIndex: '',
+        pageSize: '',
         status: 0,
         liablePersonName: '' //责任人
       },
-      utilList: [
-        { id: '1', name: 'mm' },
-        { id: '2', name: 'MPa' },
-        { id: '3', name: '℃' }
-      ], //标准值单位 - 假数据
+      utilList: [], //标准值单位
       //周期单位
       circleList: [
-        { id: '1', name: '天' },
-        { id: '2', name: '周' },
-        { id: '3', name: '月' }
+        { id: 0, name: '无' },
+        { id: 1, name: '班' },
+        { id: 2, name: '日' },
+        { id: 3, name: '周' },
+        { id: 4, name: '月' },
+        { id: 5, name: '年' } /*,
+        { id: 6, name: '其他' }*/
       ],
-      standardTypeList: [
-        { id: '1', name: '绝对值' },
-        { id: '2', name: '范围值' }
-      ], //标准值类型 - 假数据
-      total: 2, // 总条数 - 假数据
+      //标准值类型
+      standardTypeList: [{ id: 0, name: '数值' }, { id: 1, name: '判断' }],
+      pageSize: 20,
       pageIndex: 1,
-      pageSize: 10,
-      multipleSelection: [], //批量选择
-      currentRow: {} //当前行数据
+      total: 0,
+      deleteData: {}, //table单行删除
+      multipleSelection: [], //使用selection-change监听选项变化，然后将选中参数val值赋值给multipleSelection数组
+      deleteUserFormVisible: false, //删除多选项删除时弹出的对话框
+      //table批量删除
+      deleteAll: {
+        standardList: []
+      },
+      departmentManList: []
     }
   },
   created() {
-    // 初始化假数据
-    this.init假数据()
+    this.findStandardSelect() //标准维护下拉框数据
+    this.tableText() //标准维护table表格
+    this.findAllData()
+    console.log('this.userNo', this.userNo)
+  },
+  mounted() {
+    this.getMenuList()
   },
   methods: {
-    init假数据() {
-      // 初始化过滤器数据
-      this.productionLineFilterList = this.productionList.map(item => ({
-        text: item.name,
-        value: item.name
-      }))
-      this.areaFilterList = this.productionAreaList.map(item => ({
-        text: item.name,
-        value: item.name
-      }))
-      this.deviceFilterList = this.deviceList.map(item => ({
-        text: item.name,
-        value: item.name
-      }))
-      this.departMentFilterList = this.departmentList.map(item => ({
-        text: item.name,
-        value: item.name
-      }))
-      this.measureTypeFilterList = this.measureTypeList.map(item => ({
-        text: item.name,
-        value: item.name
-      }))
-      this.dutyPersonFilterList = [
-        { text: '张三', value: '张三' },
-        { text: '李四', value: '李四' }
-      ]
+    //获取责任人
+    filterChkEmpNameList() {
+      post(getPersonSearchVoList, {}).then(res => {
+        if (res.success) {
+          this.dutyPersonFilterList = res.data
+        }
+      })
     },
+    //获取产线
+    findProductionLineList() {
+      post(getProductionLineSearchVoList, {}).then(res => {
+        if (res.success) {
+          this.productionLineFilterList = res.data
+        }
+      })
+    },
+    //获取区域
+    findAreaList() {
+      post(getProductionLineAreaSearchVoList, {}).then(res => {
+        if (res.success) {
+          this.areaFilterList = res.data
+        }
+      })
+    },
+    //获取测量方式
+    findMeasureTypeList() {
+      post(getMeasureTypeSearchVoList, {}).then(res => {
+        if (res.success) {
+          this.measureTypeFilterList = res.data
+        }
+      })
+    },
+    //获取责任部门
+    findDepartMentList() {
+      post(getDutyDepartmentSearchVoList, {}).then(res => {
+        if (res.success) {
+          this.departMentFilterList = res.data
+        }
+      })
+    },
+    //获取设备
+    findDeviceList() {
+      post(getDeviceSearchVoList, {}).then(res => {
+        if (res.success) {
+          this.deviceFilterList = res.data
+        }
+      })
+    },
+    filterChange(obj) {
+      const keys = Object.keys(obj)
+      const values = Object.values(obj)
+      let useDeptKeys = keys[0]
+      let useDeptNum = values[0][0]
+      console.log('Keys', useDeptKeys)
+      console.log('value', useDeptNum)
+      if (useDeptKeys === 'dutyPerson') {
+        this.form.liablePersonName = useDeptNum
+      } else if (useDeptKeys === 'productionLine') {
+        this.form.productionLineId = useDeptNum
+      } else if (useDeptKeys === 'areaFilter') {
+        this.form.productionLineAreaId = useDeptNum
+      } else if (useDeptKeys === 'measureTypeFilter') {
+        this.form.measureTypeId = useDeptNum
+      } else if (useDeptKeys === 'departMentFilter') {
+        this.form.dutyDepartmentId = useDeptNum
+      } else if (useDeptKeys === 'deviceFilter') {
+        this.form.deviceId = useDeptNum
+      }
+      this.pageIndex = 1
+      this.pageSize = 20
+      this.tableText()
+    },
+    //查询所有用户信息
+    async findAllData() {
+      post(userFindAllUser, {
+        userNo: '011222'
+      }).then(res => {
+        this.departmentManList = res.data
+      })
+    },
+    //查询菜单
+    async getMenuList() {
+      const res = await post(resourceListNoPage, {
+        userNo: this.userNo,
+        serviceName: 'iom'
+      })
+      if (res.success) {
+        console.log('res菜单:', res)
+        const menu = res.data.filter(item => item.type === 'menu')
+        const button = res.data.filter(item => item.type === 'button')
+        console.log('menu', menu)
+        console.log('button', button)
+        for (let i = 0; i < button.length; i++) {
+          if (button[i].code === 'check') {
+            this.checkDisabled = false
+          }
+          if (button[i].code === 'Modify') {
+            this.modifyDisabled = false
+          }
+          if (button[i].code === 'delete') {
+            this.deleteDisabled = false
+          }
+          if (button[i].code === 'add') {
+            this.addDisabled = false
+          }
+          if (button[i].code === 'import') {
+            this.importDisabled = false
+          }
+        }
+        // let menuList = getTreeMenuData(menu, '')
+        // let menuList = generateUserTree(menu)
+        // this.menuData = menuList
+        // console.log('list', this.menuData)
+        // 缓存菜单、按钮权限数据
+        this.$store.commit('menu/setAllMenus', menu)
+        // this.$store.commit('menu/setUserTreeMenuList', menuList)
+        // this.$store.commit('menu/setPageButtonPower', getPageButtonData(button))
+      }
+    },
+    //导出
+    useExport() {
+      var url =
+        'http://172.25.63.72:9100/iomPrecisionStandardController/exportData.iom'
+      var urlfix =
+        '?productionLineId=' +
+        this.form.productionLineId +
+        '&dutyDepartmentId=' +
+        this.form.dutyDepartmentId +
+        '&deviceId=' +
+        this.form.deviceId
+      url = url + urlfix
+      // debugger
+      let link = document.createElement('a')
+      link.style.display = 'none'
+      link.href = url
+      link.setAttribute('download', '标准导出' + '.xlsx')
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link) //下载完成移除元素
+      window.URL.revokeObjectURL(url) //释放掉blob对象
+    },
+    //下载模板
+    async downloadTemplate(file) {
+      // serverHost
+      var url =
+        'http://172.25.63.72:9100/iomPrecisionStandardController/downloadTemplate.iom'
+
+      // localhost
+      // var url =
+      //   'http://172.26.17.38:9100/iomPrecisionStandardController/downloadTemplate.iom'
+      let link = document.createElement('a')
+      link.style.display = 'none'
+      link.href = url
+      link.setAttribute('download', '标准导出' + '.xlsx')
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link) //下载完成移除元素
+      window.URL.revokeObjectURL(url) //释放掉blob对象
+    },
+
+    //----------导入----------
+    importExcel(file) {
+      this.uploadFile(file)
+    },
+    //导入文件
+    async uploadFile(file) {
+      let formData = new FormData()
+      formData.append('file', file)
+      formData.append('userNo', this.userNo)
+      post(importExcel, formData)
+        .then(res => {
+          if (res.success === true) {
+            this.$message.success('导入成功！')
+            this.tableText()
+          } else {
+            this.$message.error('导入失败！' + res.message)
+          }
+        })
+        .catch(err => {
+          this.$message.error('导入失败！' + err)
+          console.log(err)
+        })
+    },
+
+    //标准值类型为1，禁用标准值、上下限
+    changeStandardType() {
+      if (this.formInline.standard.standardType == '1') {
+        this.disableStandardValue = true
+        this.disableStandardUnitId = true
+        this.disabledPos = true
+        this.disabledNeg = true
+      } else {
+        this.disableStandardValue = false
+        this.disableStandardUnitId = false
+        this.disabledPos = false
+        this.disabledNeg = false
+      }
+    },
+    // 保存表格数据被选后分页跳选仍能保存
     getRowKey(row) {
       return row.id
     },
-    tableTextPage(page) {
-      this.pageIndex = page
-      // 模拟搜索
-      const filterText = this.form.itemName
-      const filterDevice = this.form.deviceId
-      const filterDept = this.form.dutyDepartmentId
-
-      // 过滤逻辑
-      let filteredList = [...this.tableList]
-
-      if (filterText) {
-        filteredList = filteredList.filter(item =>
-          item.itemName.includes(filterText)
-        )
-      }
-
-      if (filterDevice) {
-        const device = this.deviceList.find(d => d.id === filterDevice)
-        if (device) {
-          filteredList = filteredList.filter(
-            item => item.deviceName === device.name
-          )
-        }
-      }
-
-      if (filterDept) {
-        const dept = this.departmentList.find(d => d.id === filterDept)
-        if (dept) {
-          filteredList = filteredList.filter(
-            item => item.dutyDepartmentName === dept.name
-          )
-        }
-      }
-
-      this.tableList = filteredList
-      this.total = filteredList.length
+    //table批量删除
+    handleSelectionChange(val) {
+      console.log('勾选val:', val)
+      this.multipleSelection = val
     },
-    addTo() {
-      // 重置表单
+    deleteDataAll() {
+      this.deleteUserFormVisible = true
+      this.deleteAll.standardList = [] //保障每次多选后的数据push时为空，不然数据会叠加
+      for (let i = 0; i < this.multipleSelection.length; i++) {
+        this.deleteAll.standardList.push({
+          id: this.multipleSelection[i].id,
+          status: 2
+        })
+      }
+      post(doDelete, this.deleteAll).then(() => {
+        this.$message({
+          type: 'success',
+          message: '删除成功!'
+        })
+      })
+      this.tableText()
+      this.deleteUserFormVisible = false
+    },
+    //table单行删除
+    deleteDataRow(val) {
+      // this.centerDialogVisible = true
+      this.deleteData = val
+      this.$confirm('此操作将删除该数据, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      })
+        .then(() => {
+          post(doDelete, { status: 2, id: this.deleteData.id }).then(res => {
+            if (res.success) {
+              this.$message.success('删除成功！')
+              this.tableText()
+            } else {
+              this.$message.error('删除失败！')
+            }
+          })
+        })
+        .catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          })
+        })
+    },
+    deleteDataRow1() {
+      post(doDelete, { status: 2, id: this.deleteData.id })
+        .then(res => {
+          if (res.success === true) {
+            this.$message({
+              type: 'success',
+              message: '删除成功!'
+            })
+            this.tableText()
+          }
+          this.centerDialogVisible = false
+        })
+        .catch(err => {
+          console.log(err)
+        })
+    },
+    //弹出框产线传name
+    async selectProduction(value) {
+      //产线、区域数据联动
+      const { data: respA } = await post(findAreaByLineID, { lineID: value })
+      this.productionAreaList = respA
+      //向后台传产线下拉数据name
+      this.productionList.forEach(item => {
+        if (item.id === value) {
+          this.formInline.standard.productionLineName = item.name
+        }
+      })
+    },
+    //弹出框区域传name
+    async selectProductionArea(value) {
+      //区域、设备下拉数据联动
+      const { data: respA } = await post(findDeviceByAreaID, { areaID: value })
+      this.deviceList = respA
+      //向后台传区域下拉数据name
+      this.productionAreaList.forEach(item => {
+        if (item.id === value) {
+          this.formInline.standard.productionLineAreaName = item.name
+        }
+      })
+    },
+    //弹出框设备传name
+    selectDevice(value) {
+      let idArray = []
+      this.deviceList.forEach(item => {
+        if (item.id === value) {
+          idArray.push(item.id)
+          this.formInline.standard.deviceName = item.name
+        }
+      })
+      //新增自定义设备
+      if (idArray.indexOf(value) === -1 && value !== '') {
+        this.formInline.standard.deviceName = value
+        this.formInline.standard.deviceId = 'createNew'
+      }
+    },
+    //弹出框责任部门传name
+    selectDuty(value) {
+      this.departmentList.forEach(item => {
+        if (item.id === value) {
+          this.formInline.standard.dutyDepartmentName = item.name
+        }
+      })
+    },
+    changeCharterUser(value) {
+      console.log('责任人value:', value)
+      this.userNameId = value
+      // let num1 = []
+      let num1 = value.split('|')
+      console.log('num1[1]', num1[1])
+      this.formInline.standard.personLiableName = num1[1]
+      if (num1[0].indexOf(',') !== -1) {
+        let arr = num1[0].split(',')
+        console.log('arr', arr)
+        this.formInline.standard.personLiableID = arr[1]
+      } else {
+        this.formInline.standard.personLiableID = num1[0]
+      }
+    },
+    //弹出框标准值单位传name
+    selectUnit(value) {
+      this.utilList.forEach(item => {
+        if (item.id === value) {
+          this.formInline.standard.standardUnitName = item.name
+        }
+      })
+    },
+    //监听pageSize改变的事件
+    handleSizeChange(newSize) {
+      this.pageSize = newSize
+      this.tableText()
+    },
+    //监听pageIndex改变的事件
+    handleCurrentChange(newPage) {
+      this.$nextTick(() => {
+        this.$refs.multipleTable.bodyWrapper.scrollTop = 0
+      })
+      this.pageIndex = newPage
+      this.tableText()
+    },
+    //新增、查看、修改按钮
+    async addTo() {
+      //标准值单位
+      const { data: res } = await post(getStandardUtilInfo, {})
+      this.utilList = res //标准值单位
+      //实现打开弹出对话框之前数据清零
       this.formInline.standard = {
-        productionLineId: '',
+        productionLineId: '', //产线
         productionLineName: '',
-        productionLineAreaId: '',
+        productionLineAreaId: '', //区域
         productionLineAreaName: '',
-        deviceId: '',
+        deviceId: '', //设备
         deviceName: '',
-        itemName: '',
-        standardValue: '',
-        standardUnitName: '',
-        standardUnitId: '',
-        standardValuePos: '',
-        standardValueNeg: '',
+        itemName: '', //项目
+        standardValue: '', //标准值
+        // item_unit: '', //标准值单位
+        standardUnitName: '', //标准值单位名称
+        standardUnitId: '', //标准值单位id
+        standardValuePos: '', //标准上限
+        standardValueNeg: '', //标准下限
         measureType: '',
         checkCycle: '',
-        cycleUnit: '',
-        standardType: '',
-        dutyDepartmentId: '',
+        cycleUnit: '', //周期单位
+        standardType: '', //标准值类型
+        standardValueDisable: '', //失效值
+        dutyDepartmentId: '', //责任部门
         dutyDepartmentName: '',
-        personLiableName: '',
-        personLiableID: ''
+        createTime: '',
+        creator: '',
+        updateTime: '',
+        updater: '',
+        status: 0
       }
       this.dialogVisible = true
     },
-    lookTo(row) {
-      this.formInline.standard = { ...row }
+    async lookTo(val) {
+      //查看操作禁用不能修改
+      this.lookToDisable = true
+      //标准值单位
+      const { data: res } = await post(getStandardUtilInfo, {})
+      this.utilList = res //utilList标准值单位
+      this.formInline.standard = val
       this.dialogVisibleLook = true
     },
-    modifyTo(row) {
-      this.formInline.standard = { ...row }
+    async modifyTo(val) {
+      //标准值单位
+      const { data: res } = await post(getStandardUtilInfo, {})
+      this.utilList = res
+      const { data: upData } = await post(getStandardInfo, {
+        standardID: val.id
+      })
+      this.formInline.standard = JSON.parse(upData)
       this.dialogVisibleModify = true
     },
-    deleteDataRow(row) {
-      this.currentRow = row
-      this.centerDialogVisible = true
-    },
-    deleteDataRow1() {
-      // 模拟删除
-      this.tableList = this.tableList.filter(
-        item => item.id !== this.currentRow.id
+    // 新增页面确定保存
+    async saveDate() {
+      // 将后台规定为Number类型的字段由string转为number
+      this.formInline.standard.standardValuePos = Number(
+        this.formInline.standard.standardValuePos
       )
-      this.total = this.tableList.length
-      this.centerDialogVisible = false
-      this.$message.success('删除成功')
-    },
-    saveDate() {
-      // 模拟保存
-      const newItem = {
-        ...this.formInline.standard,
-        id: Date.now().toString(),
-        productionLineName:
-          this.productionList.find(
-            p => p.id === this.formInline.standard.productionLineId
-          )?.name || '',
-        productionLineAreaName:
-          this.productionAreaList.find(
-            a => a.id === this.formInline.standard.productionLineAreaId
-          )?.name || '',
-        deviceName:
-          this.deviceList.find(
-            d => d.id === this.formInline.standard.deviceName
-          )?.name || '',
-        dutyDepartmentName:
-          this.departmentList.find(
-            d => d.id === this.formInline.standard.dutyDepartmentId
-          )?.name || ''
+      this.formInline.standard.standardValueNeg = Number(
+        this.formInline.standard.standardValueNeg
+      )
+      this.formInline.standard.standardValue = Number(
+        this.formInline.standard.standardValue
+      )
+      this.formInline.standard.cycleUnit = Number(
+        this.formInline.standard.cycleUnit
+      )
+      this.formInline.standard.standardValueDisable = Number(
+        this.formInline.standard.standardValueDisable
+      )
+      if (this.formInline.standard.standardType == '1') {
+        this.formInline.standard.standardValue = ''
+        this.formInline.standard.standardUnitName = ''
+        this.formInline.standard.standardValuePos = ''
+        this.formInline.standard.standardValueNeg = ''
       }
-      this.tableList.unshift(newItem)
-      this.total = this.tableList.length
+      const res = await post(doSave, this.formInline)
       this.dialogVisible = false
-      this.$message.success('新增成功')
-    },
-    saveDateModify() {
-      // 模拟修改
-      const index = this.tableList.findIndex(
-        item => item.id === this.formInline.standard.id
-      )
-      if (index !== -1) {
-        this.tableList[index] = {
-          ...this.formInline.standard,
-          productionLineName:
-            this.productionList.find(
-              p => p.id === this.formInline.standard.productionLineId
-            )?.name || '',
-          productionLineAreaName:
-            this.productionAreaList.find(
-              a => a.id === this.formInline.standard.productionLineAreaId
-            )?.name || '',
-          deviceName:
-            this.deviceList.find(
-              d => d.id === this.formInline.standard.deviceName
-            )?.name || '',
-          dutyDepartmentName:
-            this.departmentList.find(
-              d => d.id === this.formInline.standard.dutyDepartmentId
-            )?.name || ''
-        }
+      this.tableText()
+      if (res != null && res.success === true) {
+        this.tableText()
+      } else {
+        return
       }
+    },
+    //修改页面确定保存
+    async saveDateModify() {
+      const res = await post(doUpdate, this.formInline)
       this.dialogVisibleModify = false
-      this.$message.success('修改成功')
+      if (res.success === true) {
+        this.tableText()
+      } else {
+        return
+      }
     },
-    handleSelectionChange(val) {
-      this.multipleSelection = val
+    //标准维护下拉框获取数据
+    async findStandardSelect() {
+      // 产线
+      const { data: resp } = await post(getProductionLineInfo, {})
+      this.productionList = resp
+      // 区域
+      const { data: respA } = await post(getProductionLineAreaInfo, {})
+      this.productionAreaList = respA
+      // 责任部门
+      const { data: resD } = await post(getDutyDepartmentInfo, {})
+      this.departmentList = resD
+      // 设备
+      const { data: resDc } = await post(getDeviceInfo, {})
+      this.deviceList = resDc
+
+      const { data: mtList } = await post(getMeasureTypeInfo, {})
+      this.measureTypeList = mtList
     },
-    handleSizeChange(val) {
-      this.pageSize = val
-      this.tableTextPage(1)
+
+    // form表单产线-区域、区域-设备联动
+    async findAreaByLineID(value) {
+      const { data: respA } = await post(findAreaByLineID, { lineID: value })
+      this.productionAreaList = respA
+      //产线-责任部门联动
+      const { data: respB } = await post(getDutyDepartmentInfo, {
+        productionLineID: value
+      })
+      this.departmentList = respB
     },
-    handleCurrentChange(val) {
+    async findDeviceByAreaID(value) {
+      const { data: respA } = await post(findDeviceByAreaID, { areaID: value })
+      this.deviceList = respA
+    },
+    //区域清楚选项后，设备下拉框数据显示全部的
+    async findAllDevice() {
+      // 设备
+      const { data: resDc } = await post(getDeviceInfo, {})
+      this.deviceList = resDc
+    },
+    //顶部表单根据责任部门查询-联动-设备
+    async findDeviceByDepartID(value) {
+      const { data: respA } = await post(findDeviceByDepartID, {
+        departID: value
+      })
+      this.deviceList = respA
+    },
+
+    tableTextPage(val) {
       this.pageIndex = val
-      this.tableTextPage(val)
+      this.tableText()
     },
-    filterChange(filters) {
-      // 模拟过滤
-      console.log('过滤条件:', filters)
+
+    //表格获取数据
+    async tableText() {
+      // this.loading = true
+      this.form.pageIndex = this.pageIndex
+      this.form.pageSize = this.pageSize
+      const { data: res } = await post(findAllStanders, this.form)
+      if (res.tlist != null) {
+        for (let i = 0; i < res.tlist.length; i++) {
+          res.tlist[i].cycleUnit =
+            res.tlist[i].cycleUnit == '0'
+              ? '无'
+              : res.tlist[i].cycleUnit == '1'
+                ? '班'
+                : res.tlist[i].cycleUnit == '2'
+                  ? '日'
+                  : res.tlist[i].cycleUnit == '3'
+                    ? '周'
+                    : res.tlist[i].cycleUnit == '4'
+                      ? '月'
+                      : res.tlist[i].cycleUnit == '5'
+                        ? '年'
+                        : res.tlist[i].cycleUnit == '6'
+                          ? '其他'
+                          : ' '
+        }
+        for (let i = 0; i < res.tlist.length; i++) {
+          if (res.tlist[i].cycleUnit != '其他') {
+            res.tlist[i].checkCycle =
+              '1次/' + res.tlist[i].checkCycle + res.tlist[i].cycleUnit
+          } else {
+            res.tlist[i].checkCycle = res.tlist[i].cycleUnit
+          }
+        }
+        this.tableList = res.tlist
+        this.total = res.total
+        this.filterChkEmpNameList()
+        this.findProductionLineList()
+        this.findAreaList()
+        this.findMeasureTypeList()
+        this.findDepartMentList()
+        this.findDeviceList()
+        this.loading = false
+      } else {
+        this.$message('未请求到数据!')
+        this.loading = false
+      }
     },
-    findDeviceByDepartID() {
-      // 模拟根据部门找设备
-      console.log('部门ID:', this.form.dutyDepartmentId)
+    //对话框点击增加按钮表格增加一行数据
+    addRow() {
+      let objScore = {
+        left_border: '',
+        left_border_include: '',
+        measure_value: '',
+        right_border_include: '',
+        right_border: '',
+        weight: '',
+        createTime: '',
+        creator: '',
+        updateTime: '',
+        updater: ''
+      }
+      this.formInline.scoreList.push(objScore)
     },
-    selectDevice() {
-      // 模拟选择设备
-      console.log('设备ID:', this.formInline.standard.deviceName)
+    //对话框点击增加按钮表格删除一行数据
+    // deleteRow() {
+    //   this.formInline.scoreList.splice(-1, 1)
+    // },
+    //新增按钮关闭弹出弹窗
+    handleClose(done) {
+      this.$confirm('退出后新增项目信息将不会保存，是否确认退出！')
+        .then(_ => {
+          done()
+        })
+        .catch(_ => {})
     },
-    selectProduction() {
-      // 模拟选择产线
-      console.log('产线ID:', this.formInline.standard.productionLineId)
+    //查看
+    handleCloseLook: done => {
+      done()
     },
-    selectProductionArea() {
-      // 模拟选择区域
-      console.log('区域ID:', this.formInline.standard.productionLineAreaId)
-    },
-    findAllDevice() {
-      // 模拟查询所有设备
-      console.log('查询所有设备')
-    },
-    selectUnit() {
-      // 模拟选择单位
-      console.log('单位ID:', this.formInline.standard.standardUnitId)
-    },
-    changeStandardType() {
-      // 模拟改变标准值类型
-      console.log('标准值类型:', this.formInline.standard.standardType)
-    },
-    selectDuty() {
-      // 模拟选择责任部门
-      console.log('责任部门ID:', this.formInline.standard.dutyDepartmentId)
-    },
-    changeCharterUser(user) {
-      // 模拟选择责任人
-      console.log('责任人:', user)
-      this.formInline.standard.personLiableID =
-        'EMP' + Math.floor(Math.random() * 1000)
-    },
-    handleClose() {
-      this.dialogVisible = false
-    },
-    handleCloseLook() {
-      this.dialogVisibleLook = false
-    },
-    handleCloseModify() {
-      this.dialogVisibleModify = false
-    },
-    useExport() {
-      // 模拟导出
-      this.$message.success('导出成功')
-    },
-    downloadTemplate() {
-      // 模拟下载模板
-      this.$message.success('模板下载成功')
-    },
-    importExcel(file) {
-      // 模拟导入
-      this.$message.success('导入成功')
-      return false
-    },
-    deleteDataAll() {
-      // 模拟批量删除
-      const ids = this.multipleSelection.map(item => item.id)
-      this.tableList = this.tableList.filter(item => !ids.includes(item.id))
-      this.total = this.tableList.length
-      this.deleteUserFormVisible = false
-      this.$message.success('批量删除成功')
+    //删除
+    handleCloseModify: done => {
+      done()
     }
   }
 }
 </script>
 
 <style lang="less">
-.contentBox {
-  padding: 15px;
-}
 .el-table-filter {
   height: 300px;
   overflow: auto;
 }
 </style>
 <style scoped lang="less">
+.contentBox {
+  height: 100%;
+  width: 100%;
+  //padding: 16px 24px 24px 24px;
+  overflow-x: auto;
+  overflow-y: auto;
+}
 /deep/.el-form.el-form--inline {
   height: 36px;
 }
@@ -1679,12 +1931,9 @@ export default {
 /deep/.el-card__body {
   padding: 24px;
 }
-//class="dialogClass"
 /deep/.el-dialog {
   height: 60%;
-  padding: 0;
 }
-
 /deep/.input-border .el-popover__reference {
   width: 214px;
 }

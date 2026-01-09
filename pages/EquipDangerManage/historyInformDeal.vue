@@ -134,6 +134,16 @@
         </el-select>
       </el-form-item>
       <el-form-item label="时间">
+        <!--        <el-date-picker
+          v-model="searchForm.dateRange"
+          :start-placeholder="searchForm.beginDate"
+          :end-placeholder="searchForm.endDate"
+          type="daterange"
+          range-separator="至"
+          format="yyyy-MM-dd"
+          value-format="yyyy-MM-dd"
+          @change="dateChange">
+        </el-date-picker>-->
         <el-date-picker
           v-model="searchForm.beginDate"
           type="date"
@@ -288,6 +298,14 @@
           width="160"
         >
         </el-table-column>
+        <!--        <el-table-column
+          prop="creDate"
+          label="上报时间"
+          fixed
+          show-overflow-tooltip
+          sortable
+          width="160">
+        </el-table-column>-->
         <el-table-column
           prop="area"
           label="隐患区域"
@@ -311,6 +329,12 @@
           width="90"
         >
         </el-table-column>
+        <!--        <el-table-column
+          prop="statusName"
+          label="隐患单处理状态"
+          width="110">
+        </el-table-column>-->
+        <!-- isAutoName -->
         <el-table-column
           prop="sourceType"
           label="采集方式"
@@ -716,20 +740,19 @@
 </template>
 
 <script>
-// 注释掉接口导入，避免引用错误
-// import {
-//   addDangerHandleRecord,
-//   batchDeleteDangerInfoList,
-//   batchUpdateDangerInfoList,
-//   downloadExcel,
-//   downloadExcelDetail,
-//   findAllByTableId,
-//   findAllDangerHandleRecord,
-//   findAllDangerInfoList,
-//   hiddenDangerUpdate,
-//   queryWorkDeptInfo
-// } from '@/lib/RiskManageApi'
-// import { post } from '@/lib/Util'
+import {
+  addDangerHandleRecord,
+  batchDeleteDangerInfoList,
+  batchUpdateDangerInfoList,
+  downloadExcel,
+  downloadExcelDetail,
+  findAllByTableId,
+  findAllDangerHandleRecord,
+  findAllDangerInfoList,
+  hiddenDangerUpdate,
+  queryWorkDeptInfo
+} from '@/lib/EquipPrecisManage/RiskManageApi'
+import { post } from '@/lib/Util'
 import {
   date2md,
   dateCompare,
@@ -744,8 +767,8 @@ export default {
   data() {
     return {
       loading: false,
-      userNo: 'testUser001', // 假数据：用户编号
-      userInfo: { name: '测试用户', dept: '技术部' }, // 假数据：用户信息
+      userNo: this.$store.getters['user/getUserNo'],
+      userInfo: this.$store.getters['user/getUserInfo'],
       searchForm: {
         isSelf: 0,
         factoryCode: '',
@@ -775,12 +798,8 @@ export default {
         pageIndex: 1,
         pageSize: 16
       }, //列表外层查询表单
-      //产线 - 假数据
-      factoryList: [
-        { id: 'F1', name: '冷轧产线', orgCode: 'F001' },
-        { id: 'F2', name: '热轧产线', orgCode: 'F002' },
-        { id: 'F3', name: '镀锌产线', orgCode: 'F003' }
-      ],
+      //产线
+      factoryList: this.$store.getters['factory/getFactoryList'] || [],
       //产线类别
       factoryGradeList: [
         {
@@ -867,6 +886,42 @@ export default {
         {
           id: '5',
           name: '运行车间'
+        },
+        {
+          id: '6',
+          name: '机修车间'
+        },
+        {
+          id: '7',
+          name: '电修车间'
+        },
+        {
+          id: '8',
+          name: '热处理车间'
+        },
+        {
+          id: '9',
+          name: '精整车间'
+        },
+        {
+          id: '10',
+          name: '产品车间'
+        },
+        {
+          id: '11',
+          name: '机加工车间'
+        },
+        {
+          id: '12',
+          name: '后道工序车间'
+        },
+        {
+          id: '13',
+          name: '渣处理车间'
+        },
+        {
+          id: '14',
+          name: '石灰车间'
         }
       ],
       newWorkDeptList: [],
@@ -947,6 +1002,10 @@ export default {
           id: 'A',
           name: '未处理'
         },
+        // {
+        //   id: 'D',
+        //   name: '处理中'
+        // },
         {
           id: 'E',
           name: '已处理'
@@ -974,14 +1033,15 @@ export default {
           name: '否'
         }
       ],
-      tableList: [], // 表格数据将由假数据填充
-      total: 0, // 总条数将由假数据填充
+      tableList: [],
+      total: 0,
       selectChangeList: [],
       dangerDesc: '', // 隐患情况说明
       emergencyResponse: '', //应急预案
       hndlType: '', //处置方法
       workContentList: [], //处置过程跟踪
       equipDangersHeader: [
+        // { header: 'ID', key: 'id', width: 10, style: { numFmt: '@' } },
         {
           header: '隐患单编号',
           key: 'dangerNo',
@@ -1093,15 +1153,116 @@ export default {
             errorTitle: '产线',
             error: '产线选择错误'
           }
+        },
+        {
+          col: 3,
+          dataValidation: {
+            type: 'list',
+            allowBlank: true,
+            formulae: [],
+            operator: 'notEqual',
+            showErrorMessage: true,
+            errorStyle: 'error',
+            errorTitle: '产线类别',
+            error: '产线类别选择错误'
+          }
+        },
+        {
+          col: 5,
+          dataValidation: {
+            type: 'list',
+            allowBlank: true,
+            formulae: [],
+            operator: 'notEqual',
+            showErrorMessage: true,
+            errorStyle: 'error',
+            errorTitle: '专业',
+            error: '专业选择错误'
+          }
+        },
+        {
+          col: 6,
+          dataValidation: {
+            type: 'date',
+            operator: 'between',
+            showErrorMessage: true,
+            allowBlank: true,
+            dateFormats: ['DD/MM/YYYY[H]HH:mm:ss'],
+            formulae: [new Date(1900, 0, 1), new Date(2050, 11, 31)]
+          }
+        },
+        {
+          col: 10,
+          dataValidation: {
+            type: 'list',
+            allowBlank: true,
+            formulae: [],
+            operator: 'notEqual',
+            showErrorMessage: true,
+            errorStyle: 'error',
+            errorTitle: '隐患类型',
+            error: '隐患类型选择错误'
+          }
+        },
+        {
+          col: 11,
+          dataValidation: {
+            type: 'list',
+            allowBlank: true,
+            formulae: [],
+            operator: 'notEqual',
+            showErrorMessage: true,
+            errorStyle: 'error',
+            errorTitle: '隐患级别',
+            error: '隐患级别选择错误'
+          }
+        },
+        {
+          col: 13,
+          dataValidation: {
+            type: 'date',
+            operator: 'between',
+            showErrorMessage: true,
+            allowBlank: true,
+            showInputMessage: true,
+            prompTitle: '时间',
+            promp: '时间格式:YYYY-MM-DD HH:mm:ss',
+            dateFormats: ['DD/MM/YYYY[H]HH:mm:ss'],
+            formulae: [new Date(1900, 0, 1), new Date(2050, 11, 31)]
+          }
+        },
+        {
+          col: 14,
+          dataValidation: {
+            type: 'decimal',
+            allowBlank: true,
+            formulae: [0],
+            operator: 'greaterThanOrEqual',
+            showErrorMessage: true,
+            errorStyle: 'error',
+            errorTitle: '造成产线停机时间',
+            error: '造成产线停机时间输入错误'
+          }
+        },
+        {
+          col: 15,
+          dataValidation: {
+            type: 'list',
+            allowBlank: true,
+            formulae: [],
+            operator: 'notEqual',
+            showErrorMessage: true,
+            errorStyle: 'error',
+            errorTitle: '是否完成',
+            error: '是否完成选择错误'
+          }
         }
       ], //隐患列表导出数据验证
       majDelayListHeader: [], //专业类型
       fangerTypeListHeader: [], // 隐患类型
       fangerGradeListHeader: [], // 隐患级别
-      factoryListHeader: [
-        { id: 'F1', name: '冷轧产线' },
-        { id: 'F2', name: '热轧产线' }
-      ], //产线假数据
+      factoryListHeader:
+        this.$store.getters['factory/getFactoryListHeader'] || [], //产线
       factoryGradeListHeader: [], //产线类别
       isFinishListHeader: [], //是否完成
       isShowFactory: false,
@@ -1109,14 +1270,16 @@ export default {
       allSelected: false, //全选
       isIndeterminate: false, //不确定状态
       dialogVisible: false,
-      roleList: ['admin', 'operator'], // 假数据：用户角色
+      roleList: this.$store.getters['user/getUserRole'] || [],
       dialogData: {}
     }
   },
   watch: {
     tableList: {
       handler: function(val, oldVal) {
+        console.log(val, oldVal)
         let allChecked = true
+        //全不选
         let allNotChecked = true
         this.selectChangeList = []
         val.forEach(item => {
@@ -1133,6 +1296,7 @@ export default {
           this.isIndeterminate = false
         }
       },
+      // 深度观察监听
       deep: true
     }
   },
@@ -1141,103 +1305,14 @@ export default {
     console.log('userInfo', this.userInfo)
     console.log('factoryList', this.factoryList)
     console.log('roleList', this.roleList)
-
-    // 注释接口调用，使用假数据初始化
     Promise.all([this.initParams()]).then(() => {
-      this.loadFakeTableData() // 加载假表格数据
+      this.query()
     })
     this.findSelect()
     this.findMajDelayList()
     this.initHeader()
   },
   methods: {
-    // 生成假表格数据
-    loadFakeTableData() {
-      this.loading = true
-      // 模拟网络请求延迟
-      setTimeout(() => {
-        this.tableList = [
-          {
-            id: 'D001',
-            checked: false,
-            factoryName: '冷轧产线',
-            factoryGradeName: '主要产线',
-            workDeptName: '原料车间',
-            majDelayName: '电气',
-            obsStarTime: '2023-10-01 08:30:00',
-            area: '原料区A段',
-            dangerDesc: '传送带异响，可能存在轴承磨损',
-            fangerTypeName: '生产',
-            hndlStusName: '已上报分厂',
-            sourceType: 'A',
-            expectTime: '2023-10-05 16:00:00',
-            color: 'yellow',
-            fangerGrade: 'B',
-            emergencyResponse: '立即停机检查，更换备用传送带',
-            workContent: '已安排维修人员到场',
-            isFinish: 'N',
-            isDisable: false,
-            disableHandleType: false,
-            hndlType: '更换轴承',
-            creUserNo: 'U001',
-            creUserName: '张三'
-          },
-          {
-            id: 'D002',
-            checked: false,
-            factoryName: '热轧产线',
-            factoryGradeName: '重要产线',
-            workDeptName: '精炼车间',
-            majDelayName: '机械',
-            obsStarTime: '2023-10-02 10:15:00',
-            area: '精炼炉区域',
-            dangerDesc: '炉温传感器读数异常',
-            fangerTypeName: '质量',
-            hndlStusName: '已完成',
-            sourceType: 'B',
-            expectTime: '2023-10-03 12:00:00',
-            color: '',
-            fangerGrade: 'A',
-            emergencyResponse: '校准传感器，必要时更换',
-            workContent: '已校准传感器，读数恢复正常',
-            isFinish: 'Y',
-            isDisable: true,
-            disableHandleType: true,
-            hndlType: '传感器校准',
-            creUserNo: 'U002',
-            creUserName: '李四'
-          },
-          {
-            id: 'D003',
-            checked: false,
-            factoryName: '镀锌产线',
-            factoryGradeName: '辅助产线',
-            workDeptName: '运行车间',
-            majDelayName: '液压润滑',
-            obsStarTime: '2023-10-03 14:20:00',
-            area: '镀锌槽区域',
-            dangerDesc: '液压管路轻微泄漏',
-            fangerTypeName: '安全',
-            hndlStusName: '已上报事业部',
-            sourceType: 'A',
-            expectTime: '2023-10-02 09:00:00',
-            color: 'red',
-            fangerGrade: 'C',
-            emergencyResponse: '立即停机，更换密封件',
-            workContent: '等待备件到达',
-            isFinish: 'N',
-            isDisable: false,
-            disableHandleType: false,
-            hndlType: '更换密封件及相关管路',
-            creUserNo: 'U003',
-            creUserName: '王五'
-          }
-        ]
-        this.total = 24 // 假数据总条数
-        this.loading = false
-      }, 500)
-    },
-
     //解析路由参数
     async initParams() {
       if (this.$route.query.type) {
@@ -1271,6 +1346,7 @@ export default {
         }
         if (this.$route.query.factoryNo) {
           if (this.$route.query.factoryNo !== '3') {
+            console.log('factoryList', this.factoryList)
             const fl = this.factoryList.find(
               item => item.id === this.$route.query.factoryNo
             )
@@ -1278,214 +1354,529 @@ export default {
               this.searchForm.factoryNo = fl.id
               this.searchForm.factoryName = fl.name
               this.searchForm.factoryCode = fl.orgCode
-              // 注释接口调用，使用假数据
-              // await this.queryWorkDept(this.searchForm.factoryCode, '1')
-              this.newWorkDeptList = this.workDeptList.filter(
-                item => item.id <= 3
-              )
+              await this.queryWorkDept(this.searchForm.factoryCode, '1')
             }
+            // this.searchForm.factoryNo = this.$route.query.factoryNo
+            // this.searchForm.factoryName = this.$route.query.factoryName
+            // //更新车间
+            // //切换车间数据
+            // this.queryWorkDept(this.searchForm.factoryCode, '1')
+            // // this.changeWorkDeptList(this.searchForm.factoryNo)
           }
         }
         if (this.$route.query.fangerGrade) {
           this.searchForm.fangerGrade = this.$route.query.fangerGrade
         }
-      }
-    },
-
-    // 生成假的详情数据
-    getFakeDetailData(row) {
-      return {
-        ...row,
-        creDate: '2023-10-01 09:15:00',
-        statusName: row.isFinish === 'Y' ? '已处理' : '未处理',
-        fangerGradeName:
-          row.fangerGrade === 'A'
-            ? '一般隐患'
-            : row.fangerGrade === 'B'
-              ? '较大隐患'
-              : '重大隐患',
-        handles: [
-          {
-            id: 'H001',
-            creDateTime: '2023-10-01 09:30:00',
-            creUserNo: row.creUserNo,
-            creUserName: row.creUserName,
-            workContent: '发现隐患并上报'
-          },
-          {
-            id: 'H002',
-            creDateTime: '2023-10-01 10:15:00',
-            creUserNo: 'U004',
-            creUserName: '赵六',
-            workContent: '收到上报，安排处理'
-          }
-        ]
-      }
-    },
-
-    // 以下为原有方法，接口调用部分已注释，添加必要的假数据处理
-
-    findSelect() {
-      // 注释接口调用
-      // post('/api/xxx', {}).then(res => {
-      //   // 处理逻辑
-      // })
-
-      // 假数据处理
-      this.newWorkDeptList = this.workDeptList
-    },
-
-    findMajDelayList() {
-      // 假数据处理，直接使用已有数据
-      this.majDelayListHeader = this.majDelayList.map(item => item.name)
-    },
-
-    initHeader() {
-      // 假数据初始化
-      this.fangerTypeListHeader = this.fangerTypeList.map(item => item.name)
-      this.fangerGradeListHeader = this.fangerGradeList.map(item => item.name)
-      this.isFinishListHeader = this.yesOrNotList.map(item => item.name)
-    },
-
-    query() {
-      // 注释接口调用
-      // this.loading = true;
-      // findAllDangerInfoList(this.searchForm).then(res => {
-      //   this.tableList = res.data.list;
-      //   this.total = res.data.total;
-      //   this.loading = false;
-      // }).catch(err => {
-      //   this.loading = false;
-      // });
-
-      // 使用假数据
-      this.loadFakeTableData()
-    },
-
-    clickQuery() {
-      this.searchForm.pageIndex = 1
-      this.query()
-    },
-
-    pageSizeChange(val) {
-      this.searchForm.pageSize = val
-      this.searchForm.pageIndex = 1
-      this.query()
-    },
-
-    currentPageChange(val) {
-      this.searchForm.pageIndex = val
-      this.query()
-    },
-
-    selectFactory(val) {
-      const factory = this.factoryList.find(item => item.id === val)
-      if (factory) {
-        this.searchForm.factoryName = factory.name
-        this.searchForm.factoryCode = factory.orgCode
+        if (this.$route.query.workDeptName) {
+          this.searchForm.workDeptNo = this.$route.query.workDeptNo
+          this.searchForm.workDeptName = this.$route.query.workDeptName
+        }
+        if (this.$route.query.beginDate) {
+          this.searchForm.beginDate = this.$route.query.beginDate
+        }
+        if (this.$route.query.endDate) {
+          this.searchForm.endDate = this.$route.query.endDate
+        }
+        this.searchForm.isSelf = 0
       } else {
-        this.searchForm.factoryName = ''
-        this.searchForm.factoryCode = ''
+        await this.initData()
       }
-
-      // 注释接口调用
-      // this.queryWorkDept(this.searchForm.factoryCode, '1').then(() => {
-      //   this.searchForm.workDeptNo = '';
-      // });
-
-      // 假数据处理
-      this.newWorkDeptList = this.workDeptList
     },
-
-    selectWorkDept(val) {
-      const dept = this.newWorkDeptList.find(item => item.id === val)
-      this.searchForm.workDeptName = dept ? dept.name : ''
+    async initData() {
+      this.initBtn()
+      const fl = this.factoryList.find(
+        item => item.orgCode === this.userInfo.factoryCode
+      )
+      if (fl) {
+        this.searchForm.factoryNo = fl.id
+        this.searchForm.factoryName = fl.name
+        this.searchForm.factoryCode = fl.orgCode
+        await this.queryWorkDept(this.searchForm.factoryCode, '3')
+      }
+      // this.searchForm.workDeptNo = this.userInfo.workDeptNo
+      // this.searchForm.workDeptName = this.userInfo.workDeptName
     },
-
-    selectFangerType(val) {
-      const type = this.fangerTypeList.find(item => item.id === val)
-      this.searchForm.fangerTypeName = type ? type.name : ''
-    },
-
-    selectFangerGrade(val) {
-      const grade = this.fangerGradeList.find(item => item.id === val)
-      this.searchForm.fangerGradeName = grade ? grade.name : ''
-    },
-
-    selectHndlStus(val) {
-      const status = this.hndlStusList.find(item => item.id === val)
-      this.searchForm.hndlStusName = status ? status.name : ''
-    },
-
-    selectStatus(val) {
-      const status = this.statusList.find(item => item.id === val)
-      this.searchForm.statusName = status ? status.name : ''
-    },
-
-    selectIsDelay(val) {
-      const delay = this.delayList.find(item => item.id === val)
-      this.searchForm.isDelayName = delay ? delay.name : ''
-    },
-
-    selectIsAuto(val) {
-      const auto = this.autoList.find(item => item.id === val)
-      this.searchForm.isAutoName = auto ? auto.name : ''
-    },
-
-    handleAllSelectedChange(val) {
-      this.tableList.forEach(item => {
-        item.checked = val
+    initBtn() {
+      // const rl1 = this.roleList.find(item => {
+      //   return (
+      //     item.roleName === '设备隐患车间' ||
+      //     item.roleName === '设备隐患技术' ||
+      //     item.roleName === '设备隐患点检'
+      //   )
+      // })
+      // if (rl1) {
+      //   // hndlStus: '', //隐患处理状态 A:新建 B:车间已提交分厂 C:分厂已提交事业部 D:已申报事业部
+      //   this.searchForm.hndlStus = 'A'
+      //   this.searchForm.hndlStusName = '新建'
+      // }
+      // const rl2 = this.roleList.find(item => {
+      //   return item.roleName === '设备隐患厂级'
+      // })
+      // if (rl2) {
+      //   this.searchForm.hndlStus = 'B'
+      //   this.searchForm.hndlStusName = '已上报分厂'
+      // }
+      // const rl3 = this.roleList.find(item => {
+      //   return (
+      //     item.roleName === '设备隐患管理员' || item.name === '设备隐患事业部'
+      //   )
+      // })
+      // if (rl3) {
+      //   this.searchForm.hndlStus = 'C'
+      //   this.searchForm.hndlStusName = '已上报事业部'
+      // }
+      //车间，分厂的人查看非自己,技术员查询车间的
+      /*const rl = this.roleList.find(item => {
+        return (
+          item.roleName === '设备隐患管理员' ||
+          item.roleName === '设备隐患车间' ||
+          item.roleName === '设备隐患厂级' ||
+          item.roleName === '设备隐患技术'
+        )
       })
+      if (rl) {
+        this.searchForm.isSelf = 0
+      } else {
+        this.searchForm.isSelf = 1
+      }*/
     },
-
-    handleSelectedChange() {
-      // 由watch监听处理
+    initHeader() {
+      //产线类别
+      let newStr4 = ''
+      this.factoryGradeList.forEach(item => {
+        newStr4 += item.name + ','
+      })
+      this.factoryGradeListHeader = [
+        '"' + newStr4.substring(0, newStr4.length - 1) + '"'
+      ]
+      // //专业类型
+      // let newStr = ''
+      // this.majDelayList.forEach(item => {
+      //   newStr += item.name + ','
+      // })
+      // this.majDelayListHeader = [
+      //   '"' + newStr.substring(0, newStr.length - 1) + '"'
+      // ]
+      // //隐患类型
+      // let newStr2 = ''
+      // this.fangerTypeList.forEach(item => {
+      //   newStr2 += item.name + ','
+      // })
+      // this.fangerTypeListHeader = [
+      //   '"' + newStr2.substring(0, newStr2.length - 1) + '"'
+      // ]
+      //隐患级别
+      let newStr5 = ''
+      this.fangerGradeList.forEach(item => {
+        newStr5 += item.name + ','
+      })
+      this.fangerGradeListHeader = [
+        '"' + newStr5.substring(0, newStr5.length - 1) + '"'
+      ]
+      //是否完成
+      let newStr6 = ''
+      this.yesOrNotList.forEach(item => {
+        newStr6 += item.name + ','
+      })
+      this.isFinishListHeader = [
+        '"' + newStr6.substring(0, newStr6.length - 1) + '"'
+      ]
     },
-
-    lookDetails(row) {
-      // 注释接口调用
-      // findAllDangerHandleRecord(row.id).then(res => {
-      //   this.dialogData = { ...row, handles: res.data };
-      //   this.dialogVisible = true;
-      // });
-
-      // 使用假数据
-      this.dialogData = this.getFakeDetailData(row)
+    dbClick(row, column, event) {
+      // this.dangerDesc = row.dangerDesc
+      // this.emergencyResponse = row.emergencyResponse
+      // this.hndlType = row.hndlType
+      // // {"dangerNo":"隐患编号"}
+      // let obj = {
+      //   dangerNo: row.dangerNo
+      // }
+      // this.queryHandleRecord(obj)
+      this.dialogData = row
       this.dialogVisible = true
     },
-
-    handleClose() {
-      this.dialogVisible = false
+    handleAllSelectedChange(val) {
+      if (val) {
+        this.tableList.forEach(item => {
+          item.checked = true
+        })
+      } else {
+        this.tableList.forEach(item => {
+          item.checked = false
+        })
+      }
     },
-
-    dbClick(row) {
-      this.lookDetails(row)
+    handleSelectedChange(val) {
+      console.log(val)
+      console.log(this.tableList)
     },
-
+    getRowKey(row) {
+      return row.id
+    },
+    //设置列表的类名
+    setCellClassName(row) {
+      // row.columnIndex===15
+      // row.column.label === '是否完成'
+      /*  (row.columnIndex === 14 ||
+          row.columnIndex === 15 ||
+          row.columnIndex === 16) &&*/
+      if (row.row.isFinish === 'Y') {
+        return 'status_green' //修改的样式
+      } else {
+        return ''
+      }
+    },
+    lookDetails(row) {
+      // // dangerDesc: '', // 隐患情况说明
+      // //   emergencyResponse: '', //应急预案
+      // //   hndlType: '', //处置方法
+      // //   workContentList: [], //处置过程跟踪
+      // this.dangerDesc = row.dangerDesc
+      // this.emergencyResponse = row.emergencyResponse
+      // this.hndlType = row.hndlType
+      // // {"dangerNo":"隐患编号"}
+      // let obj = {
+      //   dangerNo: row.dangerNo
+      // }
+      // this.queryHandleRecord(obj)
+      this.dialogData = row
+      this.dialogVisible = true
+    },
+    handleClose: done => {
+      done()
+    },
+    clickQuery() {
+      this.loading = true
+      this.searchForm.pageIndex = 1
+      this.query()
+    },
+    //产线
+    selectFactory(value) {
+      const fl = this.factoryList.find(item => item.id === value)
+      if (fl) {
+        this.searchForm.factoryName = fl.name
+        this.queryWorkDept(fl.orgCode, '1')
+      }
+      this.searchForm.workDeptNo = ''
+      this.searchForm.workDeptName = ''
+      // //切换车间数据
+      // this.changeWorkDeptList(value)
+    },
+    changeWorkDeptList(value) {
+      //切换车间数据
+      this.newWorkDeptList = []
+      let tempList = []
+      switch (value) {
+        case '32': //中厚板卷厂
+          tempList = [
+            {
+              id: '6',
+              name: '机修车间'
+            },
+            {
+              id: '7',
+              name: '电修车间'
+            },
+            {
+              id: '9',
+              name: '精整车间'
+            }
+          ]
+          break
+        case '38': //宽厚板厂
+          tempList = [
+            {
+              id: '6',
+              name: '机修车间'
+            },
+            {
+              id: '7',
+              name: '电修车间'
+            },
+            {
+              id: '8',
+              name: '热处理车间'
+            },
+            {
+              id: '9',
+              name: '精整车间'
+            }
+          ]
+          break
+        case '66': //中板厂
+          tempList = [
+            {
+              id: '6',
+              name: '机修车间'
+            },
+            {
+              id: '7',
+              name: '电修车间'
+            },
+            {
+              id: '9',
+              name: '精整车间'
+            },
+            {
+              id: '10',
+              name: '产品车间'
+            }
+          ]
+          break
+        case '73': //第一炼钢厂
+          tempList = [
+            {
+              id: '1',
+              name: '原料车间'
+            },
+            {
+              id: '2',
+              name: '转炉车间'
+            },
+            {
+              id: '3',
+              name: '精炼车间'
+            },
+            {
+              id: '4',
+              name: '连铸车间'
+            },
+            {
+              id: '5',
+              name: '运行车间'
+            }
+          ]
+          break
+        case '84': //金石材料厂
+          tempList = [
+            {
+              id: '13',
+              name: '渣处理车间'
+            },
+            {
+              id: '14',
+              name: '石灰车间'
+            }
+          ]
+          break
+        case '87': //金润智能制造厂
+          tempList = [
+            {
+              id: '11',
+              name: '机加工车间'
+            },
+            {
+              id: '12',
+              name: '后道工序车间'
+            }
+          ]
+          break
+      }
+      this.newWorkDeptList.push(...tempList)
+    },
+    //车间
+    selectWorkDept(value) {
+      const wdl = this.newWorkDeptList.find(item => item.id === value)
+      if (wdl) {
+        this.searchForm.workDeptName = wdl.name
+      }
+    },
+    //类型
+    selectFangerType(value) {
+      const ftl = this.fangerTypeList.find(item => item.id === value)
+      if (ftl) {
+        this.searchForm.fangerTypeName = ftl.name
+      }
+    },
+    //级别
+    selectFangerGrade(value) {
+      console.log('级别', value)
+      const fgl = this.fangerGradeList.find(item => item.id === value)
+      if (fgl) {
+        this.searchForm.fangerGradeName = fgl.name
+      }
+    },
+    //状态
+    selectHndlStus(value) {
+      const hsl = this.hndlStusList.find(item => item.id === value)
+      if (hsl) {
+        this.searchForm.hndlStusName = hsl.name
+      }
+    },
+    //状态
+    selectStatus(value) {
+      const sl = this.statusList.find(item => item.id === value)
+      if (sl) {
+        this.searchForm.statusName = sl.name
+      }
+    },
+    //是否超时
+    selectIsDelay(value) {
+      const dl = this.delayList.find(item => item.id === value)
+      if (dl) {
+        this.searchForm.isDelayName = dl.name
+      }
+    },
+    //采集方式
+    selectIsAuto(value) {
+      const al = this.autoList.find(item => item.id === value)
+      if (al) {
+        this.searchForm.isAutoName = al.name
+      }
+    },
+    //选择是否完成
+    selectIsFinish(row) {
+      console.log(row)
+      row.disableHandleType = row.isFinish !== 'Y'
+      for (let i = 0; i < this.yesOrNotList.length; i++) {
+        if (this.yesOrNotList[i].id === row.isFinish) {
+          row.isFinishName = this.yesOrNotList[i].name
+          // this.$set(row, 'budgetTypeName', this.costCategories[i].label)
+        }
+      }
+    },
+    dateChange(params) {
+      console.log(params)
+      this.searchForm.beginDate = params[0]
+      this.searchForm.endDate = params[1]
+    },
+    /*----分页-----*/
+    pageSizeChange(val) {
+      this.searchForm.pageSize = val
+      this.query()
+    },
+    currentPageChange(val) {
+      this.searchForm.pageIndex = val
+      this.$nextTick(() => {
+        this.$refs.multipleTable.bodyWrapper.scrollTop = 0
+      })
+      this.query()
+    },
+    //点击选中数据
+    handleSelectChange(selection) {
+      this.selectChangeList = selection
+      console.log(selection)
+      // this.selectChangeList = []
+      // for (let i = 0; i < selection.length; i++) {
+      //   this.selectChangeList.push(selection[i])
+      // }
+    },
+    //选择产线
+    selectTableFactory(row) {
+      for (let i = 0; i < this.factoryList.length; i++) {
+        if (this.factoryList[i].id === row.factoryNo) {
+          row.factoryName = this.factoryList[i].name
+          // this.$set(row, 'budgetTypeName', this.costCategories[i].label)
+        }
+      }
+    },
+    //选择产线级别
+    selectTableFactoryGrade(row) {
+      for (let i = 0; i < this.factoryGradeList.length; i++) {
+        if (this.factoryGradeList[i].id === row.factoryGrade) {
+          row.factoryGradeName = this.factoryGradeList[i].name
+          // this.$set(row, 'budgetTypeName', this.costCategories[i].label)
+        }
+      }
+    },
+    //下载Excel
+    downloadExcel() {
+      this.downloadFile()
+      // this.equipDangersDataValidation[0].dataValidation.formulae = this.factoryListHeader
+      // this.equipDangersDataValidation[1].dataValidation.formulae = this.factoryGradeListHeader
+      // this.equipDangersDataValidation[2].dataValidation.formulae = this.majDelayListHeader
+      // this.equipDangersDataValidation[4].dataValidation.formulae = this.fangerTypeListHeader
+      // this.equipDangersDataValidation[5].dataValidation.formulae = this.fangerGradeListHeader
+      // this.equipDangersDataValidation[8].dataValidation.formulae = this.isFinishListHeader
+      // if (this.selectChangeList.length > 0) {
+      //   import('../../utils/excelJsUtil').then(excel => {
+      //     excel.export_to_excel(
+      //       '历史隐患信息模板',
+      //       '历史隐患信息表',
+      //       this.equipDangersHeader,
+      //       this.selectChangeList,
+      //       this.equipDangersDataValidation
+      //     )
+      //   })
+      // } else {
+      //   import('../../utils/excelJsUtil').then(excel => {
+      //     excel.export_to_excel(
+      //       '历史隐患信息模板',
+      //       '历史隐患信息表',
+      //       this.equipDangersHeader,
+      //       this.tableList,
+      //       this.equipDangersDataValidation
+      //     )
+      //   })
+      // }
+    },
+    downloadExcelDetail() {
+      this.downloadFileDetail()
+    },
+    //修改-新增处置过程
     clickUpdate(row) {
-      // 模拟修改操作
-      row.isDisable = !row.isDisable
-    },
+      console.log('处理row', row)
+      if (row.hndlStus === 'E') {
+        this.$message.warning('该隐患单状态为已完成，无法处理!')
+        return
+      }
+      if (row.isDisable) {
+        row.isDisable = false
+      } else {
+        //{"EqDangerHandle":{"dangerNo":"隐患编号","workContent":"工作内容","isFinish":"是否最后处理 Y 是 N 否"}}
+        if (row.workContent.length === 0) {
+          this.$message.warning('请输入处置过程')
+          return
+        }
+        if (row.isFinish === 'Y' && row.hndlType.length === 0) {
+          this.$message.warning('完成时请输入处置方法')
+          return
+        }
+        let obj = {
+          EqDangerHandle: {
+            dangerNo: row.dangerNo,
+            workContent: row.workContent,
+            hndlType: row.hndlType,
+            isFinish: row.isFinish
+          },
+          userNo: this.userNo
+        }
+        let falNoParam = {
+          falNo: row.falNo
+        }
+        this.hiddenDangerUpdate(falNoParam)
+        this.createHandleRecord(obj)
+        row.isDisable = true
+      }
 
+      // let obj = {
+      //   EquipDangers: [row]
+      // }
+      // this.batchUpdate(obj)
+    },
     clickCancel(row) {
-      // 模拟取消操作
       row.isDisable = true
     },
-
+    //批量修改
+    clickBatchUpdate() {
+      let obj = {
+        EquipDangers: this.selectChangeList,
+        userNo: this.userNo
+      }
+      this.batchUpdate(obj)
+    },
+    //删除
     clickDelete(row) {
-      // 模拟删除操作
-      this.$confirm('确定要删除这条记录吗？', '提示', {
+      this.$confirm('此操作将删除该数据, 是否继续?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       })
         .then(() => {
-          this.tableList = this.tableList.filter(item => item.id !== row.id)
-          this.total--
-          this.$message({
-            type: 'success',
-            message: '删除成功'
-          })
+          let obj = {
+            EquipDangers: [row.dangerNo],
+            userNo: this.userNo
+          }
+          this.batchDelete(obj)
         })
         .catch(() => {
           this.$message({
@@ -1495,54 +1886,345 @@ export default {
         })
     },
 
-    selectIsFinish(row) {
-      // 模拟选择是否完成
-      console.log('选择是否完成:', row.isFinish)
-    },
+    /*----------接口--------------*/
+    downloadFile() {
+      post(downloadExcel, this.searchForm).then(res => {
+        let data = res
+        if (!data) {
+          return
+        }
+        var url = window.URL.createObjectURL(new Blob([data]))
+        let link = document.createElement('a')
+        let myDate = new Date()
 
-    downloadExcel() {
-      // 注释接口调用
-      // downloadExcel(this.searchForm).then(res => {
-      //   // 处理下载逻辑
-      // });
-
-      // 模拟下载提示
-      this.$message({
-        type: 'info',
-        message: '导出功能已触发（模拟）'
+        link.style.display = 'none'
+        link.href = url
+        link.setAttribute(
+          'download',
+          '板材事业部隐患汇总表' + date2md(myDate) + '.xls'
+        )
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link) //下载完成移除元素
+        window.URL.revokeObjectURL(url) //释放掉blob对象
       })
     },
+    downloadFileDetail() {
+      post(downloadExcelDetail, this.searchForm).then(res => {
+        let data = res
+        if (!data) {
+          return
+        }
+        let url = window.URL.createObjectURL(new Blob([data]))
+        let link = document.createElement('a')
+        let myDate = new Date()
 
-    downloadExcelDetail() {
-      // 注释接口调用
-      // downloadExcelDetail(this.searchForm).then(res => {
-      //   // 处理下载逻辑
-      // });
-
-      // 模拟下载提示
-      this.$message({
-        type: 'info',
-        message: '导出详情功能已触发（模拟）'
+        link.style.display = 'none'
+        link.href = url
+        link.setAttribute(
+          'download',
+          '板材事业部隐患详情表' + date2md(myDate) + '.xls'
+        )
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link) //下载完成移除元素
+        window.URL.revokeObjectURL(url) //释放掉blob对象
       })
     },
-
-    getRowKey(row) {
-      return row.id
+    //查询车间
+    async queryWorkDept(orgCode, type) {
+      const res = await post(queryWorkDeptInfo, { orgCode: orgCode })
+      if (res.success) {
+        let tempList = []
+        res.data.forEach(item => {
+          tempList.push({
+            id: item.orgCode,
+            name: item.orgAllName
+          })
+        })
+        if (type === '1' || type === '3') {
+          this.newWorkDeptList = []
+          this.newWorkDeptList.push(...tempList)
+          if (type === '3') {
+            const nwdl = this.newWorkDeptList.find(
+              item => item.id === this.userInfo.workDeptNo
+            )
+            if (nwdl) {
+              this.searchForm.workDeptNo = nwdl.id
+              this.searchForm.workDeptName = nwdl.name
+            }
+          }
+        }
+      }
     },
-
-    setCellClassName({ row, column, rowIndex, columnIndex }) {
-      // 保持原有样式逻辑
-      return ''
+    //专业类别
+    async findMajDelayList() {
+      const { data: res } = await post(findAllByTableId, {
+        tableId: 'FAULTSPECI'
+      })
+      this.majDelayList = []
+      res.forEach(item => {
+        this.majDelayList.push({
+          id: item.oneCol,
+          name: item.twoCol
+        })
+      })
+      //专业类型
+      let newStr = ''
+      this.majDelayList.forEach(item => {
+        newStr += item.name + ','
+      })
+      this.majDelayListHeader = [
+        '"' + newStr.substring(0, newStr.length - 1) + '"'
+      ]
+    },
+    //下拉框获取数据
+    async findSelect() {
+      // //产线
+      // const { data: res } = await post(findAllByTableId, {
+      //   tableId: 'FACTORY',
+      //   col: '3',
+      //   data: '3'
+      // })
+      // this.factoryList = []
+      // res.forEach(item => {
+      //   this.factoryList.push({
+      //     id: item.oneCol,
+      //     name: item.twoCol
+      //   })
+      // })
+      // this.factoryList.push({
+      //   id: '3',
+      //   name: '事业部'
+      // })
+      // let newStr3 = ''
+      // this.factoryList.forEach(item => {
+      //   newStr3 += item.name + ','
+      // })
+      // this.factoryListHeader = [
+      //   '"' + newStr3.substring(0, newStr3.length - 1) + '"'
+      // ]
+      //隐患类型
+      const { data: res2 } = await post(findAllByTableId, {
+        tableId: 'FANGERTYPE'
+      })
+      this.fangerTypeList = []
+      res2.forEach(item => {
+        this.fangerTypeList.push({
+          id: item.oneCol,
+          name: item.twoCol
+        })
+      })
+      let newStr4 = ''
+      this.fangerTypeList.forEach(item => {
+        newStr4 += item.name + ','
+      })
+      this.fangerTypeListHeader = [
+        '"' + newStr4.substring(0, newStr4.length - 1) + '"'
+      ]
+    },
+    //查询数据
+    async query() {
+      if (this.searchForm.isSelf === 1) {
+        this.searchForm.userNo = this.userInfo.userNo
+        console.log('this.userNo', this.userInfo.userNo)
+      } else {
+        this.searchForm.userNo = ''
+      }
+      //根据权限不同查询数据不同
+      //TODO 根据权限查询
+      //隐患处理状态 A:新建 B:车间已提交分厂 C:分厂已提交事业部 D:已申报事业部
+      //技术员角色:查询自己新增的数据,可处理，可删除(状态为新增才可删除)
+      //车间主任角色:查询车间所有数据，是否可处理？ 可删除
+      //分厂领导角色:查询事业部所有数据，可提交事业部
+      const res = await post(findAllDangerInfoList, this.searchForm)
+      console.log(res)
+      this.tableList = []
+      this.total = 0
+      if (res.success) {
+        res.data.tlist.forEach(item => {
+          //产线
+          const fl = this.factoryList.find(cell => cell.id === item.factoryNo)
+          if (fl) item.factoryName = fl.name
+          //产线类别
+          const fg = this.factoryGradeList.find(
+            cell => cell.id === item.factoryGrade
+          )
+          if (fg) item.factoryGradeName = fg.name
+          //专业
+          const mdl = this.majDelayList.find(cell => cell.id === item.majDelay)
+          if (mdl) item.majDelayName = mdl.name
+          // //车间
+          // const wdl = this.workDeptList.find(
+          //   cell => cell.id === item.workDeptNo
+          // )
+          // if (wdl) item.workDeptName = wdl.name
+          if (item.workDeptNo === '2') {
+            item.workDeptName = '转炉车间'
+          } else if (item.workDeptNo === '11') {
+            item.workDeptName = '机加工车间'
+          } else if (item.workDeptNo === '12') {
+            item.workDeptName = '后道工序车间'
+          }
+          //隐患类型
+          const ftl = this.fangerTypeList.find(
+            cell => cell.id === item.fangerType
+          )
+          if (ftl) item.fangerTypeName = ftl.name
+          //隐患级别
+          const fgl = this.fangerGradeList.find(
+            cell => cell.id === item.fangerGrade
+          )
+          if (fgl) item.fangerGradeName = fgl.name
+          //是否完成
+          if (item.handles && item.handles.length > 0) {
+            const yonl = this.yesOrNotList.find(
+              cell => cell.id === item.handles[item.handles.length - 1].isFinish
+            )
+            if (yonl) {
+              item.isFinishName = yonl.name
+              item.isFinish = yonl.id
+            } else {
+              item.isFinishName = this.yesOrNotList[1].name
+              item.isFinish = this.yesOrNotList[1].id
+            }
+            let index = item.handles.length - 1
+            item.workContent =
+              // item.handles[index].creUserNo + '\n'
+              item.handles[index].workContent + '\n'
+            item.handles[index].creDate + ' '
+            item.handles[index].creDateTime
+            //处置方法
+            item.hndlType = item.handles[index].hndlType
+          } else {
+            item.isFinishName = this.yesOrNotList[1].name
+            item.isFinish = this.yesOrNotList[1].id
+            item.workContent = ''
+            item.hndlType = ''
+          }
+          //expectTime: "1970-01-01T00:00:43.426+00:00"
+          if (item.expectTime && item.expectTime.length > 19) {
+            item.expectTime = item.expectTime
+              .substring(0, 19)
+              .replace(/T/g, ' ')
+          }
+          //判断颜色
+          //未处理颜色判断
+          if (item.handles.length === 0) {
+            if (
+              dateToNowH(item.expectTime.substring(0, 10) + ' 23:59:59') < 0
+            ) {
+              item.color = 'red'
+            } else if (
+              dateToNowH(item.expectTime.substring(0, 10) + ' 23:59:59') < 24
+            ) {
+              item.color = 'yellow'
+            } else {
+              item.color = 'normal'
+            }
+          } else {
+            //已处理颜色判断
+            const length = item.handles.length
+            const isFinishItem = item.handles.find(
+              info => info.isFinish === 'Y'
+            )
+            //已处理且已完成 完成时间与期望时间对比
+            if (isFinishItem) {
+              //处理完成时间>期望时间，超时红色 2022-01-11 23:59:59
+              if (
+                dateCompare(
+                  isFinishItem.creDateTime,
+                  item.expectTime.substring(0, 10) + ' 23:59:59'
+                )
+              ) {
+                item.color = 'red'
+              } else {
+                item.color = 'normal'
+              }
+            } else {
+              //已处理但未完成 计划处理时间与期望时间对比
+              if (
+                dateToNowH(item.expectTime.substring(0, 10) + ' 23:59:59') < 0
+              ) {
+                item.color = 'red'
+              } else if (
+                dateToNowH(item.expectTime.substring(0, 10) + ' 23:59:59') < 24
+              ) {
+                item.color = 'yellow'
+              } else {
+                item.color = 'normal'
+              }
+            }
+          }
+          //判断状态
+          const hsl = this.hndlStusList.find(cell => cell.id === item.hndlStus)
+          if (hsl) item.hndlStusName = hsl.name
+          //判断隐患单处理状态
+          const sl = this.statusList.find(cell => cell.id === item.status)
+          if (sl) item.statusName = sl.name
+          item.checked = false
+          //设置不可编辑
+          item.isDisable = true
+          item.disableHandleType = item.isFinish !== 'Y'
+        })
+        this.tableList = res.data.tlist
+        this.total = res.data.total
+        this.loading = false
+        console.log(this.tableList)
+      }
+    },
+    //批量修改
+    async batchUpdate(obj) {
+      const res = await post(batchUpdateDangerInfoList, obj)
+      console.log(res)
+      if (res.success) {
+        this.query()
+      }
+    },
+    async hiddenDangerUpdate(falNoParam) {
+      const res = await post(hiddenDangerUpdate, falNoParam)
+      if (res.success) {
+        // this.query()
+        console.log('成功调用')
+      } else {
+        console.log('失败调用')
+      }
+    },
+    //批量删除
+    async batchDelete(obj) {
+      const res = await post(batchDeleteDangerInfoList, obj)
+      console.log(res)
+      if (res.success) {
+        this.$message.success('删除成功！')
+        this.query()
+      } else {
+        this.$message.error('删除失败！' + res.success)
+      }
+    },
+    //查询处置过程
+    async queryHandleRecord(obj) {
+      const res = await post(findAllDangerHandleRecord, obj)
+      console.log(res)
+      if (res.success) {
+        //处置过程跟踪
+        this.workContentList = res.data
+      }
+    },
+    //新增处置过程
+    async createHandleRecord(obj) {
+      const res = await post(addDangerHandleRecord, obj)
+      console.log(res)
+      if (res.success) {
+        await this.query()
+      } else {
+        this.$message.error(res.data)
+      }
     }
   }
 }
 </script>
 
 <style scoped lang="less">
-.contentBox {
-  padding: 15px;
-}
-
 //表格外层卡片样式
 .CardTable {
   margin-top: 16px;
@@ -1622,13 +2304,5 @@ export default {
 /deep/.el-scrollbar__wrap::-webkit-scrollbar {
   width: 10px;
   height: 10px;
-}
-/deep/.el-dialog {
-  padding: 0;
-}
-/* 分页选中项样式修改 */
-::v-deep .el-pager li.active {
-  color: #35a03b !important; /* 绿色文字 */
-  //border-color: #42b983 !important; /* 绿色边框 */
 }
 </style>

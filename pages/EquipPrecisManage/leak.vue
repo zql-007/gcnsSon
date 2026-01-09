@@ -1,11 +1,13 @@
 <template>
   <div
-    class="contentBox">
+    class="contentBox"
+  >
     <!--    form表单-->
     <el-form
       :inline="true"
       :model="form"
-      class="demo-form-inline">
+      class="demo-form-inline"
+    >
       <el-form-item label="责任部门">
         <el-select
           v-model="form.dutyDepartmentId"
@@ -36,11 +38,23 @@
           ></el-option>
         </el-select>
       </el-form-item>
+
+      <!--      <el-form-item label="检测时间">
+        <el-date-picker
+          v-model="form.measureTime"
+          type="date"
+          format="yyyy-MM-dd"
+          value-format="yyyy-MM-dd"
+          style="width: 150px"
+          placeholder="选择日期"
+          @change="changeTime">
+        </el-date-picker>
+      </el-form-item>-->
       <el-form-item>
         <el-button
           type="primary"
           icon="el-icon-search"
-          @click="findAll"
+          @click=" findAll"
         >
           搜索
         </el-button>
@@ -53,6 +67,11 @@
           全部提交
         </el-button>
       </el-form-item>
+      <!--<el-form-item>
+        <el-button
+          icon="el-icon-upload2"
+          type="primary">导出</el-button>
+      </el-form-item>-->
     </el-form>
     <!--    漏评评分项-->
     <el-card style="margin-top: 16px">
@@ -162,7 +181,15 @@
             label="下公差"
           >
             <template slot-scope="scope">
+              <!-- <div v-if="scope.row.standardValueNegMark == '1'">
+                <el-input
+                  v-model="scope.row.standardValueNeg"
+                  clearable
+                  placeholder="请输入数值"></el-input>
+              </div>
+              <div v-else> -->
               {{ scope.row.standardValueNeg }}
+              <!-- </div> -->
             </template>
           </el-table-column>
           <el-table-column
@@ -173,7 +200,15 @@
             label="上公差"
           >
             <template slot-scope="scope">
+              <!-- <div v-if="scope.row.standardValuePosMark == '1'">
+                <el-input
+                  v-model="scope.row.standardValuePos"
+                  clearable
+                  placeholder="请输入数值"></el-input>
+              </div>
+              <div v-else> -->
               {{ scope.row.standardValuePos }}
+              <!-- </div> -->
             </template>
           </el-table-column>
           <el-table-column
@@ -215,6 +250,11 @@
                   @change="blurInput(scope.row)"
                 />
               </el-form-item>
+              <!--              <el-input
+                v-model="scope.row.measureValue"
+                clearable
+                type="number"
+                placeholder="请输入数值"/>-->
             </template>
           </el-table-column>
           <el-table-column
@@ -255,6 +295,11 @@
                   placeholder="请输入说明"
                 />
               </el-form-item>
+              <!--              <el-input
+                v-model="scope.row.measureValue"
+                clearable
+                type="number"
+                placeholder="请输入数值"/>-->
             </template>
           </el-table-column>
           <el-table-column
@@ -295,22 +340,23 @@
   </div>
 </template>
 
+
 <script>
-// import { get, post } from '@/lib/Util'
+import { get, post } from '@/lib/Util'
 import moment from 'moment'
-// import {
-//   getBusinessUnitInfo,
-//   getProductionLineInfo,
-//   getProductionLineAreaInfo,
-//   getMeasureTypeInfo,
-//   getDutyDepartmentInfo,
-//   findAreaByLineID,
-//   iomPrecisionManagementController_doBatchSaveMItem,
-//   iomPrecisionManagementController_forgetItemCheck,
-//   iomPrecisionManagementController_updateForgetMItem,
-//   iomPrecisionManagementController_findPersonLiableList,
-//   iomPrecisionManagementController_doBatchSaveForgetItem
-// } from '@/lib/ApiURL01'
+import {
+  getBusinessUnitInfo,
+  getProductionLineInfo,
+  getProductionLineAreaInfo,
+  getMeasureTypeInfo,
+  getDutyDepartmentInfo,
+  findAreaByLineID,
+  iomPrecisionManagementController_doBatchSaveMItem,
+  iomPrecisionManagementController_forgetItemCheck,
+  iomPrecisionManagementController_updateForgetMItem,
+  iomPrecisionManagementController_findPersonLiableList,
+  iomPrecisionManagementController_doBatchSaveForgetItem
+} from '@/lib/EquipPrecisManage/ApiURL01'
 export default {
   // layout: 'test',
   name: 'EquipPrecisManage-leak',
@@ -318,11 +364,8 @@ export default {
     return {
       loading: false,
       doBatch: { mList: [] }, //存储全部提交传的参数
-      userNo: this.$store.getters['user/getUserNo'] || 'USER001',
-      userInfo: this.$store.getters['user/getUserInfo'] || {
-        userName: '测试用户',
-        userNo: 'TEST001'
-      },
+      userNo: this.$store.getters['user/getUserNo'],
+      userInfo: this.$store.getters['user/getUserInfo'] || {},
       checkList: ['选中且禁用', '复选框 A'],
       tableDataFrom: {
         tableData: [] //表格显示的数据
@@ -336,6 +379,7 @@ export default {
         productionLineAreaId: '',
         dutyDepartmentId: '',
         deviceId: '',
+        // measureTime: '',
         personLiableID: [],
         pageIndex: 1,
         pageSize: 20
@@ -362,40 +406,15 @@ export default {
     }
   },
   created() {
-    // 初始化假数据
-    this.initFakeData()
+    this.findProductionLineArea()
     this.findAll()
   },
   mounted() {},
   methods: {
-    // 初始化假数据
-    initFakeData() {
-      // 责任部门假数据
-      this.departmentList = [
-        { id: 'dept1', name: '生产部' },
-        { id: 'dept2', name: '质检部' },
-        { id: 'dept3', name: '设备部' },
-        { id: 'dept4', name: '技术部' }
-      ]
-
-      // 责任人假数据
-      this.dutyPeopleList = [
-        { PERSON_LIABLE_NAME: '张三' },
-        { PERSON_LIABLE_NAME: '李四' },
-        { PERSON_LIABLE_NAME: '王五' },
-        { PERSON_LIABLE_NAME: '赵六' }
-      ]
-
-      // 测量方式假数据
-      this.productionAreaList = [
-        { id: 'area1', name: '热轧区' },
-        { id: 'area2', name: '冷轧区' },
-        { id: 'area3', name: '成型区' }
-      ]
-    },
-
     //监听pageSize改变的事件
     handleSizeChange(newSize) {
+      // console.log(newSize, 'newSize')
+      // this.pageSize = newSize
       this.form.pageSize = newSize
       this.findAll()
     },
@@ -404,12 +423,12 @@ export default {
       this.$nextTick(() => {
         this.$refs.multipleTable.bodyWrapper.scrollTop = 0
       })
+      // this.pageIndex = newPage
       this.form.pageIndex = newPage
       this.findAll()
     },
-    //下拉框获取数据 (原接口调用已注释)
+    //下拉框获取数据
     async findProductionLineArea() {
-      /*
       //事业部
       let resB = await post(getBusinessUnitInfo, {})
       this.businessList = resB.data
@@ -428,12 +447,10 @@ export default {
       // 责任部门
       let resD = await post(getDutyDepartmentInfo, {})
       this.departmentList = resD.data
-      */
       this.findAll()
     },
-    // 产线-测量方式联动 (原接口调用已注释)
+    // 产线-测量方式联动
     async findAreaByLineID(value) {
-      /*
       const { data: respA } = await post(findAreaByLineID, { lineID: value })
       this.productionAreaList = respA
       //产线-责任部门联动
@@ -441,64 +458,77 @@ export default {
         productionLineID: value
       })
       this.departmentList = respB
-      */
     },
     findAll() {
       this.loading = true
-
-      // 模拟接口延迟
-      setTimeout(() => {
-        // 生成假表格数据
-        const fakeData = []
-        const pageIndex = this.form.pageIndex
-        const pageSize = this.form.pageSize
-        const total = 50 // 总数据量
-
-        // 根据当前页码生成对应数据
-        for (
-          let i = (pageIndex - 1) * pageSize;
-          i < pageIndex * pageSize && i < total;
-          i++
-        ) {
-          // 随机获取责任部门
-          const dept = this.departmentList[
-            Math.floor(Math.random() * this.departmentList.length)
-          ]
-
-          fakeData.push({
-            id: `item${i + 1}`,
-            no: i + 1,
-            productionLineName: '板材车间',
-            productionLineAreaName: this.productionAreaList[
-              Math.floor(Math.random() * this.productionAreaList.length)
-            ].name,
-            dutyDepartmentName: dept.name,
-            dutyDepartmentId: dept.id,
-            deviceName: `${i + 1}#加热炉`,
-            itemName: `温度控制${(i % 3) + 1}`,
-            standardValue: (100 + Math.random() * 50).toFixed(2),
-            isStandard: '1',
-            standardValueNeg: (Math.random() * 5).toFixed(2),
-            standardValuePos: (Math.random() * 5).toFixed(2),
-            sunitName: '℃',
-            measureType: Math.random() > 0.5 ? '自动' : '手动',
-            checkCycle: Math.random() > 0.5 ? '1次/班' : '1次/日',
-            measureValue: null,
-            personLiableName: this.dutyPeopleList[
-              Math.floor(Math.random() * this.dutyPeopleList.length)
-            ].PERSON_LIABLE_NAME,
-            cycleStartTime: moment()
-              .subtract(7, 'days')
-              .format('YYYY-MM-DD'),
-            cycleEndTime: moment().format('YYYY-MM-DD'),
-            remark: ''
-          })
+      // this.pageIndex = val
+      if (this.form.measureTime === null) {
+        this.form.measureTime = ''
+      }
+      post(iomPrecisionManagementController_forgetItemCheck, this.form).then(
+        res => {
+          if (res.success) {
+            for (let i = 0; i < res.data.tlist.length; i++) {
+              res.data.tlist[i].cycleStartTime = moment(
+                res.data.tlist[i].cycleStartTime
+              ).format('YYYY-MM-DD')
+              res.data.tlist[i].cycleEndTime = moment(
+                res.data.tlist[i].cycleEndTime
+              ).format('YYYY-MM-DD')
+              res.data.tlist[i].cycleUnit =
+                res.data.tlist[i].cycleUnit == '0'
+                  ? '无'
+                  : res.data.tlist[i].cycleUnit == '1'
+                    ? '班'
+                    : res.data.tlist[i].cycleUnit == '2'
+                      ? '日'
+                      : res.data.tlist[i].cycleUnit == '3'
+                        ? '周'
+                        : res.data.tlist[i].cycleUnit == '4'
+                          ? '月'
+                          : res.data.tlist[i].cycleUnit == '5'
+                            ? '年'
+                            : res.data.tlist[i].cycleUnit == '6'
+                              ? '装配'
+                              : ' '
+              if (res.data.tlist[i].cycleUnit != '装配') {
+                res.data.tlist[i].checkCycle =
+                  '1次/' +
+                  res.data.tlist[i].checkCycle +
+                  res.data.tlist[i].cycleUnit
+              } else if (res.data.tlist[i].cycleUnit == '装配') {
+                res.data.tlist[i].checkCycle = res.data.tlist[i].cycleUnit
+              }
+              //检查人员
+              // res.data.tlist[i].MEASURER =
+              //   this.userInfo.userName + '-' + this.userInfo.userNo
+            }
+            this.tableDataFrom.tableData = res.data.tlist
+            this.tableDataFrom.tableData.forEach((item, index) => {
+              if (isNaN(item.standardValueNeg)) {
+                this.$set(
+                  this.tableDataFrom.tableData[index],
+                  'standardValueNegMark',
+                  1
+                )
+              }
+              if (isNaN(item.standardValuePos))
+                this.$set(
+                  this.tableDataFrom.tableData[index],
+                  'standardValuePosMark',
+                  1
+                )
+            })
+            this.total = res.data.total
+            this.loading = false
+          } else {
+            this.tableDataFrom.tableData = []
+            this.total = 0
+            this.loading = false
+            this.$message.warning('未查到数据!')
+          }
         }
-
-        this.tableDataFrom.tableData = fakeData
-        this.total = total
-        this.loading = false
-      }, 500)
+      )
     },
 
     //公差范围转化
@@ -518,6 +548,7 @@ export default {
           returnVal = val + val * formulaEX
         }
       } else {
+        // returnVal = val + Number(formula)
         if (num == 0) {
           returnVal = val - Number(Math.abs(formula))
         } else {
@@ -547,6 +578,8 @@ export default {
           val.standardValue,
           1
         )
+        //console.log(typeof bottomVal, topValue)
+        //console.log(typeof val.measureValue)
 
         if (
           Number(val.measureValue) >= bottomVal &&
@@ -554,6 +587,7 @@ export default {
         ) {
           this.toSubmit(val)
         } else {
+          //this.$message.warning('测量值不在公差范围内，请重新输入!')
           this.$confirm('测量值不在公差范围内, 是否继续?', '提示', {
             confirmButtonText: '确定',
             cancelButtonText: '取消',
@@ -572,23 +606,34 @@ export default {
       this.leakForm.id = val.id
       this.leakForm.measureValue = val.measureValue
       this.leakForm.standardValue = val.standardValue
+      // this.leakForm.measurer = val.measurer
       this.leakForm.measurer =
         this.userInfo.userName + '-' + this.userInfo.userNo
       this.leakForm.remark = val.remark
+      //console.log(this.leakForm)
       this.submitOnly()
     },
     //单项提交
     submitOnly() {
       this.loading = true
-      // 模拟接口提交
-      setTimeout(() => {
+      post(
+        iomPrecisionManagementController_updateForgetMItem,
+        this.leakForm
+      ).then(res => {
         this.loading = false
-        this.$message({
-          type: 'success',
-          message: '提交成功!'
-        })
-        this.findAll()
-      }, 500)
+        if (res.success == true) {
+          this.$message({
+            type: 'success',
+            message: '提交成功!'
+          })
+          this.findAll()
+        } else {
+          this.$message({
+            type: 'info',
+            message: '提交失败!'
+          })
+        }
+      })
     },
     handleSelectionChange(val) {
       this.multipleSelection = val
@@ -596,7 +641,7 @@ export default {
     },
     //选中全部提交
     toggleSelection() {
-      this.doBatch.mList = []
+      this.doBatch.mList = [] //每次push多选的数据时保障数组为空，不然数据会叠加
 
       if (this.multipleSelection.length == 0) {
         this.$message({
@@ -615,7 +660,7 @@ export default {
               type: 'warning',
               message: '请填将测量值和标准值填写完整!'
             })
-            return
+            return //用于终止以下的代码逻辑,将数据填写好才能进行下一步代码
           }
           subObItem = {}
           subObItem.id = this.multipleSelection[i].id
@@ -629,18 +674,19 @@ export default {
             i
           ].standardValuePos
           this.doBatch.mList.push(subObItem)
-
           const bottomValue =
-            Number(subObItem.standardValue) - Number(subObItem.standardValueNeg)
+            Number(subObItem.standardValue) + Number(subObItem.measureValue)
           const topValue =
-            Number(subObItem.standardValue) + Number(subObItem.standardValuePos)
-
+            Number(subObItem.standardValue) + Number(subObItem.measureValue)
+          console.log('bottomValue', bottomValue)
+          console.log('topValue', topValue)
           if (
             !(
-              Number(subObItem.measureValue) >= bottomValue &&
-              Number(subObItem.measureValue) <= topValue
+              bottomValue < subObItem.measureValue &&
+              topValue > subObItem.measureValue
             )
           ) {
+            console.log('33')
             this.$confirm('测量值不在校验规则内, 是否继续?', '提示', {
               confirmButtonText: '确定',
               cancelButtonText: '取消',
@@ -651,24 +697,30 @@ export default {
                 this.$refs.multipleTable.clearSelection()
               })
               .catch(() => {
-                console.log('取消提交')
+                console.log('失败')
               })
-            return
           }
         }
-        this.postData()
-        this.$refs.multipleTable.clearSelection()
       }
     },
     postData() {
-      // 模拟批量提交接口
-      setTimeout(() => {
-        this.$message({
-          type: 'success',
-          message: '批量提交成功!'
-        })
-        this.findAll()
-      }, 500)
+      post(
+        iomPrecisionManagementController_doBatchSaveForgetItem,
+        this.doBatch
+      ).then(res => {
+        if (res.success == true) {
+          this.$message({
+            type: 'success',
+            message: '提交成功!'
+          })
+          this.findAll()
+        } else {
+          this.$message({
+            type: 'error',
+            message: '提交失败!'
+          })
+        }
+      })
     },
     changeTime() {
       // this.findAll()
@@ -680,7 +732,11 @@ export default {
 
 <style lang="less" scoped>
 .contentBox {
-  padding: 15px;
+  height: 100%;
+  width: 100%;
+  padding: 16px 24px 24px 24px;
+  overflow-x: auto;
+  overflow-y: auto;
 }
 /deep/.el-form.el-form--inline {
   height: 36px;
@@ -691,9 +747,21 @@ export default {
 /deep/.el-select__caret.el-input__icon.el-icon-arrow-up {
   height: 40px;
 }
+//表单
+//.demo-form-inline {
+//  margin-left: 30px;
+//  margin-top: 15px;
+//}
+.buttonLeftMark {
+  margin-left: 25px;
+}
+.buttonRightMark {
+  margin-left: 20px;
+}
 .el-form-item {
   margin-right: 20px;
 }
+//责任人
 .text {
   font-size: 14px;
 }
@@ -725,6 +793,7 @@ export default {
   padding: 6px 10px;
   margin-left: 5px;
 }
+//测评评分项
 .box-card2 {
   width: 96%;
   margin-right: 20px;

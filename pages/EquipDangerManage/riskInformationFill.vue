@@ -390,16 +390,15 @@
 <script>
 import { get, post } from '@/lib/Util'
 import { date2ymdhs2, getFormatDate_XLSX } from '@/utils/dateUtil'
-// 注释掉接口引用，避免调用不存在的接口
-// import {
-//   batchAdd,
-//   dictionaryContoller_findAllByTableId,
-//   downloadTemplateExcel,
-//   findAllByTableId,
-//   findAreaByWorkshop,
-//   queryWorkDeptInfo,
-//   uploadFile
-// } from '@/lib/RiskManageApi'
+import {
+  batchAdd,
+  dictionaryContoller_findAllByTableId,
+  downloadTemplateExcel,
+  findAllByTableId,
+  findAreaByWorkshop,
+  queryWorkDeptInfo,
+  uploadFile
+} from '@/lib/EquipPrecisManage/RiskManageApi'
 
 export default {
   // layout: 'test',
@@ -407,20 +406,9 @@ export default {
   data() {
     return {
       areaPram: '',
-      userNo: 'testUser', // 使用固定测试用户ID
-      userInfo: {
-        // 模拟用户信息
-        factoryNo: '',
-        factoryCode: '',
-        factoryName: '',
-        workDeptNo: '',
-        workDeptName: '',
-        areaNo: '',
-        area: '',
-        equipNo: '',
-        equipName: ''
-      },
-      userRole: 'admin', // 模拟用户角色
+      userNo: this.$store.getters['user/getUserNo'],
+      userInfo: this.$store.getters['user/getUserInfo'],
+      userRole: this.$store.getters['user/getUserRole'],
       //多选框
       doubleSelectList: [],
       form: {},
@@ -429,12 +417,8 @@ export default {
         //表格数据
         EquipDangers: []
       },
-      //产线 - 模拟数据
-      factoryList: [
-        { id: 'F1', name: '产线一', orgCode: 'FC1' },
-        { id: 'F2', name: '产线二', orgCode: 'FC2' },
-        { id: 'F3', name: '产线三', orgCode: 'FC3' }
-      ],
+      //产线
+      factoryList: this.$store.getters['factory/getFactoryList'] || [],
       //产线类别
       factoryGradeList: [
         {
@@ -536,6 +520,42 @@ export default {
         {
           id: '5',
           name: '运行车间'
+        },
+        {
+          id: '6',
+          name: '机修车间'
+        },
+        {
+          id: '7',
+          name: '电修车间'
+        },
+        {
+          id: '8',
+          name: '热处理车间'
+        },
+        {
+          id: '9',
+          name: '精整车间'
+        },
+        {
+          id: '10',
+          name: '产品车间'
+        },
+        {
+          id: '11',
+          name: '机加工车间'
+        },
+        {
+          id: '12',
+          name: '后道工序车间'
+        },
+        {
+          id: '13',
+          name: '渣处理车间'
+        },
+        {
+          id: '14',
+          name: '石灰车间'
         }
       ],
       newWorkDeptList: [],
@@ -544,9 +564,10 @@ export default {
       //删除接口参数
       deleteParam: {
         EquipDanger: {
-          dangerNo: '',
+          dangerNo: '', //编码参数
           factoryNo: '',
           factoryGrade: '',
+          // area: '',
           areaNo: '',
           equipNo: '',
           fangerType: '',
@@ -599,6 +620,7 @@ export default {
       deleteIndex: 0,
       eqDangersFileList: [], //新增文件列表
       equipDangersHeader: [
+        // { header: 'ID', key: 'id', width: 10, style: { numFmt: '@' } },
         {
           header: '隐患单编号',
           key: 'dangerNo',
@@ -649,6 +671,12 @@ export default {
           width: 10,
           style: { numFmt: '' }
         },
+        // {
+        //   header: '隐患级别',
+        //   key: 'fangerGrade',
+        //   width: 10,
+        //   style: { numFmt: '' }
+        // },
         {
           header: '应急预案',
           key: 'emergencyResponse',
@@ -776,11 +804,8 @@ export default {
       majDelayListHeader: [], //专业类型
       fangerTypeListHeader: [], // 隐患类型
       fangerGradeListHeader: [], // 隐患级别
-      factoryListHeader: [
-        { id: 'F1', name: '产线一' },
-        { id: 'F2', name: '产线二' },
-        { id: 'F3', name: '产线三' }
-      ], //模拟产线列表头
+      factoryListHeader:
+        this.$store.getters['factory/getFactoryListHeader'] || [], //产线
       factoryGradeListHeader: [], //产线类别
       workDeptListHeader: [], //车间
       allSelected: false, //全选
@@ -819,10 +844,6 @@ export default {
     this.initHeader()
   },
   methods: {
-    //删除行
-    deleteLine(index) {
-      this.formInline.EquipDangers.splice(index, 1)
-    },
     //新增
     addLineData() {
       this.deleteIndex++
@@ -889,25 +910,10 @@ export default {
     },
 
     initData() {
-      // 使用模拟数据初始化，不调用接口
       if (this.userInfo.factoryCode.length !== 0) {
-        // 模拟车间数据
-        this.newWorkDeptList = [
-          { id: 'WD1', name: '模拟车间1' },
-          { id: 'WD2', name: '模拟车间2' }
-        ]
-
-        // 模拟区域数据
-        this.newAreaDeptList = [
-          { id: 'A1', name: '区域A' },
-          { id: 'A2', name: '区域B' }
-        ]
-
-        // 模拟设备数据
-        this.newEquipNotList = [
-          { id: 'EQ1', name: '设备1' },
-          { id: 'EQ2', name: '设备2' }
-        ]
+        this.queryWorkDept(this.userInfo.factoryCode)
+        this.queryAreaDept(this.userInfo.factoryNo, this.userInfo.factoryCode)
+        this.queryEquipNoDept(this.userInfo.equipNo)
       }
     },
     initHeader() {
@@ -948,10 +954,11 @@ export default {
       }
     },
     handleSelectedChange(val) {
-      // 保持原有逻辑
+      //console.log(this.formInline.EquipDangers)
     },
-    //产线选择
+    //产线
     selectFactory(row) {
+      //console.log('产线row：', row)
       for (let i = 0; i < this.factoryList.length; i++) {
         if (this.factoryList[i].id === row.factoryNo) {
           row.factoryName = this.factoryList[i].name
@@ -962,105 +969,100 @@ export default {
       row.workDeptName = ''
       row.areaNo = ''
       row.area = ''
-
-      // 模拟切换车间数据，不调用接口
-      this.newWorkDeptList = [
-        { id: `WD-${row.factoryNo}-1`, name: `${row.factoryName}车间1` },
-        { id: `WD-${row.factoryNo}-2`, name: `${row.factoryName}车间2` }
-      ]
-
-      // 模拟切换区域数据，不调用接口
-      this.newAreaDeptList = [
-        { id: `A-${row.factoryNo}-1`, name: `${row.factoryName}区域1` },
-        { id: `A-${row.factoryNo}-2`, name: `${row.factoryName}区域2` }
-      ]
+      //切换车间数据
+      this.queryWorkDept(row.factoryCode)
+      //切换区域数据
+      this.queryAreaDept(row.factoryNo, row.factoryCode)
     },
-    //产线类别选择
+    //产线类别
     selectFactoryGrade(row) {
       for (let i = 0; i < this.factoryGradeList.length; i++) {
         if (this.factoryGradeList[i].id === row.factoryGrade) {
           row.factoryGradeName = this.factoryGradeList[i].name
+          // this.$set(row, 'budgetTypeName', this.costCategories[i].label)
         }
       }
     },
-    //车间选择
+    //车间
     selectWorkDept(row) {
+      //console.log('车间row：', row)
       for (let i = 0; i < this.newWorkDeptList.length; i++) {
         if (this.newWorkDeptList[i].id === row.workDeptNo) {
           row.workDeptName = this.newWorkDeptList[i].name
+          // this.$set(row, 'budgetTypeName', this.costCategories[i].label)
         }
       }
-
-      // 模拟切换区域数据，不调用接口
-      if (row.factoryNo && row.workDeptNo) {
-        this.newAreaDeptList = [
-          { id: `A-${row.workDeptNo}-1`, name: `${row.workDeptName}区域1` },
-          { id: `A-${row.workDeptNo}-2`, name: `${row.workDeptName}区域2` }
-        ]
+      if (
+        row.factoryNo != null &&
+        row.factoryNo !== '' &&
+        row.workDeptNo != null &&
+        row.workDeptNo !== ''
+      ) {
+        this.queryAreaDept(row.factoryNo, row.workDeptNo)
       }
     },
-    //隐患区域选择
+    //隐患区域
     selectAreaDept(row) {
+      console.log(row)
+      //console.log('this.newAreaDeptList：', this.newAreaDeptList)
       for (let i = 0; i < this.newAreaDeptList.length; i++) {
         if (this.newAreaDeptList[i].id === row.areaNo) {
           row.area = this.newAreaDeptList[i].name
           row.areaNo = this.newAreaDeptList[i].id
+          // this.$set(row, 'budgetTypeName', this.costCategories[i].label)
         }
       }
       row.equipNo = ''
       row.equipName = ''
-
-      // 模拟切换设备名称，不调用接口
-      if (row.areaNo) {
-        this.newEquipNotList = [
-          { id: `EQ-${row.areaNo}-1`, name: `${row.area}设备1` },
-          { id: `EQ-${row.areaNo}-2`, name: `${row.area}设备2` }
-        ]
+      //切换设备名称
+      if (row.areaNo != null && row.areaNo !== '') {
+        this.queryEquipNoDept(row.areaNo)
       }
     },
-    //设备名称选择
+    //设备名称
     selectEquipNoDept(row) {
       for (let i = 0; i < this.newEquipNotList.length; i++) {
         if (this.newEquipNotList[i].id === row.equipNo) {
           row.equipName = this.newEquipNotList[i].name
+          // row.equipNo = this.newEquipNotList[i].id
+          // this.$set(row, 'budgetTypeName', this.costCategories[i].label)
         }
       }
     },
-    //专业选择
+    //专业
     selectMajDelay(row) {
       for (let i = 0; i < this.majDelayList.length; i++) {
         if (this.majDelayList[i].id === row.majDelay) {
           row.majDelayName = this.majDelayList[i].name
+          // this.$set(row, 'budgetTypeName', this.costCategories[i].label)
         }
       }
     },
-    //隐患类型选择
+    //隐患类型
     selectFangerType(row) {
       for (let i = 0; i < this.fangerTypeList.length; i++) {
         if (this.fangerTypeList[i].id === row.fangerType) {
           row.fangerTypeName = this.fangerTypeList[i].name
+          // this.$set(row, 'budgetTypeName', this.costCategories[i].label)
         }
       }
     },
-    //隐患级别选择
+    //隐患类型
     selectFangerGrade(row) {
       for (let i = 0; i < this.fangerGradeList.length; i++) {
         if (this.fangerGradeList[i].id === row.fangerType) {
           row.fangerGradeName = this.fangerGradeList[i].name
+          // this.$set(row, 'budgetTypeName', this.costCategories[i].label)
         }
       }
     },
-    //下载Excel - 模拟实现
+    //下载Excel
     downloadExcel() {
-      this.$message.info('模板下载功能已模拟，实际项目中需调用后端接口')
-      // 注释掉实际接口调用
-      // this.downloadFile()
+      this.downloadFile()
     },
-    //导入Excel - 模拟实现
+    //导入Excel
     importExcel(file) {
-      this.$message.info('文件导入功能已模拟，实际项目中需调用后端接口')
-      // 注释掉实际接口调用
-      // this.uploadFile(file)
+      this.uploadFile(file)
     },
     //生成bgt数据
     generateBgtData(header, results) {
@@ -1145,102 +1147,89 @@ export default {
       this.loading = false
     },
 
-    /*------------------接口调用部分全部注释或替换为模拟数据-------*/
-    //下载模板 - 注释掉实际接口调用
-    // downloadFile() {
-    //   get(downloadTemplateExcel).then(res => {
-    //     let data = res
-    //     if (!data) {
-    //       return
-    //     }
-    //     var url = window.URL.createObjectURL(new Blob([data]))
-    //     let link = document.createElement('a')
-    //     let myDate = new Date()
+    /*------------------接口-------*/
+    //下载模板
+    downloadFile() {
+      get(downloadTemplateExcel).then(res => {
+        let data = res
+        if (!data) {
+          return
+        }
+        var url = window.URL.createObjectURL(new Blob([data]))
+        let link = document.createElement('a')
+        let myDate = new Date()
 
-    //     link.style.display = 'none'
-    //     link.href = url
-    //     link.setAttribute('download', '板材事业部设备隐患导入模板.xlsx')
-    //     document.body.appendChild(link)
-    //     link.click()
-    //     document.body.removeChild(link) //下载完成移除元素
-    //     window.URL.revokeObjectURL(url) //释放掉blob对象
-    //   })
-    // },
-
-    //查询车间 - 注释掉实际接口调用，使用模拟数据
-    // async queryWorkDept(orgCode) {
-    //   const res = await post(queryWorkDeptInfo, { orgCode: orgCode })
-    //   if (res.success) {
-    //     let tempList = []
-    //     res.data.forEach(item => {
-    //       tempList.push({
-    //         id: item.orgCode,
-    //         name: item.orgAllName
-    //       })
-    //     })
-    //     this.newWorkDeptList = []
-    //     this.newWorkDeptList.push(...tempList)
-    //   }
-    // },
-
-    //查询区域 - 注释掉实际接口调用，使用模拟数据
-    // async queryAreaDept(factoryCode, orgCode) {
-    //   let param = {
-    //     factoryNo: factoryCode,
-    //     orgCode: orgCode
-    //   }
-    //   const res = await post(findAreaByWorkshop, param)
-    //   if (res.success) {
-    //     let tempList = []
-    //     res.data.forEach(item => {
-    //       tempList.push({
-    //         id: item.THREE_COL,
-    //         name: item.FOUR_COL
-    //       })
-    //     })
-    //     this.newAreaDeptList = []
-    //     this.newAreaDeptList.push(...tempList)
-    //   }
-    // },
-
-    //查询设备名称 - 注释掉实际接口调用，使用模拟数据
-    // async queryEquipNoDept(orgCode) {
-    //   const res = await post(dictionaryContoller_findAllByTableId, {
-    //     tableId: 'EQUIP_INFO',
-    //     col: 3,
-    //     data: orgCode
-    //   })
-    //   if (res.success) {
-    //     let tempList = []
-    //     res.data.forEach(item => {
-    //       tempList.push({
-    //         id: item.fiveCol,
-    //         name: item.sixCol
-    //       })
-    //     })
-    //     this.newEquipNotList = []
-    //     this.newEquipNotList.push(...tempList)
-    //   }
-    // },
-
-    //专业类别 - 注释掉实际接口调用，使用模拟数据
+        link.style.display = 'none'
+        link.href = url
+        link.setAttribute('download', '板材事业部设备隐患导入模板.xlsx')
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link) //下载完成移除元素
+        window.URL.revokeObjectURL(url) //释放掉blob对象
+      })
+    },
+    //查询车间
+    async queryWorkDept(orgCode) {
+      const res = await post(queryWorkDeptInfo, { orgCode: orgCode })
+      if (res.success) {
+        let tempList = []
+        res.data.forEach(item => {
+          tempList.push({
+            id: item.orgCode,
+            name: item.orgAllName
+          })
+        })
+        this.newWorkDeptList = []
+        this.newWorkDeptList.push(...tempList)
+      }
+    },
+    //查询区域
+    async queryAreaDept(factoryCode, orgCode) {
+      let param = {
+        factoryNo: factoryCode,
+        orgCode: orgCode
+      }
+      //console.log('param：', param)
+      const res = await post(findAreaByWorkshop, param)
+      if (res.success) {
+        let tempList = []
+        res.data.forEach(item => {
+          tempList.push({
+            id: item.THREE_COL,
+            name: item.FOUR_COL
+          })
+        })
+        this.newAreaDeptList = []
+        this.newAreaDeptList.push(...tempList)
+      }
+    },
+    //查询设备名称
+    async queryEquipNoDept(orgCode) {
+      //console.log('设备名称orgCode：', orgCode)
+      const res = await post(dictionaryContoller_findAllByTableId, {
+        tableId: 'EQUIP_INFO',
+        col: 3,
+        data: orgCode
+      })
+      if (res.success) {
+        let tempList = []
+        res.data.forEach(item => {
+          tempList.push({
+            id: item.fiveCol,
+            name: item.sixCol
+          })
+        })
+        this.newEquipNotList = []
+        this.newEquipNotList.push(...tempList)
+      }
+    },
+    //专业类别
     async findMajDelayList() {
-      // 使用本地模拟数据，不调用接口
-      // const { data: res } = await post(findAllByTableId, {
-      //   tableId: 'FAULTSPECI'
-      // })
-      // 模拟接口返回数据
-      const mockRes = [
-        { oneCol: 'A', twoCol: '自控' },
-        { oneCol: 'B', twoCol: '仪表' },
-        { oneCol: 'E', twoCol: '电气' },
-        { oneCol: 'L', twoCol: '液压润滑' },
-        { oneCol: 'M', twoCol: '机械' },
-        { oneCol: 'O', twoCol: '其他' }
-      ]
-
+      const { data: res } = await post(findAllByTableId, {
+        tableId: 'FAULTSPECI'
+      })
       this.majDelayList = []
-      mockRes.forEach(item => {
+      res.forEach(item => {
         this.majDelayList.push({
           id: item.oneCol,
           name: item.twoCol
@@ -1255,23 +1244,14 @@ export default {
         '"' + newStr.substring(0, newStr.length - 1) + '"'
       ]
     },
-
-    //下拉框获取数据 - 注释掉实际接口调用，使用模拟数据
+    //下拉框获取数据
     async findSelect() {
-      // 模拟接口返回数据，不调用实际接口
-      // const { data: res2 } = await post(findAllByTableId, {
-      //   tableId: 'FANGERTYPE'
-      // })
-      const mockRes2 = [
-        { oneCol: 'A', twoCol: '安全' },
-        { oneCol: 'B', twoCol: '环保' },
-        { oneCol: 'C', twoCol: '质量' },
-        { oneCol: 'D', twoCol: '生产' },
-        { oneCol: 'E', twoCol: '减产' }
-      ]
-
+      //隐患类型
+      const { data: res2 } = await post(findAllByTableId, {
+        tableId: 'FANGERTYPE'
+      })
       this.fangerTypeList = []
-      mockRes2.forEach(item => {
+      res2.forEach(item => {
         this.fangerTypeList.push({
           id: item.oneCol,
           name: item.twoCol
@@ -1285,42 +1265,169 @@ export default {
         '"' + newStr4.substring(0, newStr4.length - 1) + '"'
       ]
     },
-
-    //导入文件 - 注释掉实际接口调用，使用模拟提示
-    // async uploadFile(file) {
-    //   let formData = new FormData()
-    //   formData.append('file', file)
-    //   formData.append('userNo', this.userNo)
-    //   post(uploadFile, formData)
-    //     .then(res => {
-    //       if (res.success === true) {
-    //         this.$message.success('导入成功！')
-    //       } else {
-    //         this.$message.error(res.message)
-    //       }
-    //       this.loading = false
-    //     })
-    //     .catch(() => {
-    //       this.loading = false
-    //     })
-    //   return false
-    // },
-
-    //提交按钮事件 - 模拟实现
+    //导入文件
+    async uploadFile(file) {
+      let formData = new FormData()
+      formData.append('file', file)
+      formData.append('userNo', this.userNo)
+      post(uploadFile, formData)
+        .then(res => {
+          if (res.success === true) {
+            this.$message.success('导入成功！')
+          } else {
+            this.$message.error('导入失败！' + res.message)
+          }
+        })
+        .catch(err => {
+          this.$message.error('导入失败！' + err)
+          console.log(err)
+        })
+    },
+    //提交
     submitAdd() {
-      this.$message.success('提交功能已模拟，实际项目中需调用后端接口')
-      // 注释掉实际提交逻辑
-      // this.loading = true
-      // post(batchAdd, this.formInline.EquipDangers).then(res => {
-      //   if (res.success) {
-      //     this.$message.success('提交成功！')
-      //     this.formInline.EquipDangers = []
-      //     this.addLineData()
-      //   } else {
-      //     this.$message.error(res.message)
-      //   }
-      //   this.loading = false
-      // })
+      //TODO 产线，产线类别，车间最后根据而工号查询生产
+      let list = []
+      if (this.doubleSelectList.length !== 0) {
+        list = this.doubleSelectList
+      } else {
+        list = this.formInline.EquipDangers
+      }
+      //console.log('submitAdd:', list)
+      let isForbidden = false
+      for (let i = 0; i < list.length; i++) {
+        let item = list[i]
+        if (item.factoryNo.length === 0) {
+          this.$message.warning(`第${i + 1}条数据产线未选择！`)
+          isForbidden = true
+          break
+        }
+        if (item.workDeptNo.length === 0) {
+          this.$message.warning(`第${i + 1}条数据车间未选择！`)
+          isForbidden = true
+          break
+        }
+        if (item.majDelay.length === 0) {
+          this.$message.warning(`第${i + 1}条数据专业未选择！`)
+          isForbidden = true
+          break
+        }
+        if (item.obsStarTime.length === 0) {
+          this.$message.warning(`第${i + 1}条数据发现时间未选择！`)
+          isForbidden = true
+          break
+        }
+        if (item.areaNo.length === 0) {
+          this.$message.warning(`第${i + 1}条数据隐患区域未选择！`)
+          isForbidden = true
+          break
+        }
+        if (item.equipNo.length === 0) {
+          this.$message.warning(`第${i + 1}条数据设备名称未选择！`)
+          isForbidden = true
+          break
+        }
+        if (item.dangerDesc.length === 0) {
+          this.$message.warning(`第${i + 1}条数隐患情况说明未输入！`)
+          isForbidden = true
+          break
+        }
+        if (item.fangerType.length === 0) {
+          this.$message.warning(`第${i + 1}条数据隐患类型未选择！`)
+          isForbidden = true
+          break
+        }
+        // if (item.fangerGrade.length === 0) {
+        //   this.$message.warning(`第${i + 1}条数据隐患级别未选择！`)
+        //   isForbidden = true
+        //   break
+        // }
+        if (item.emergencyResponse.length === 0) {
+          this.$message.warning(`第${i + 1}条数据应急预案未输入！`)
+          isForbidden = true
+          break
+        }
+        if (item.expectTime.length === 0) {
+          this.$message.warning(`第${i + 1}条数据计划何时处理未选择！`)
+          isForbidden = true
+          break
+        }
+        if (item.falMintue.length === 0) {
+          this.$message.warning(`第${i + 1}条数据可能造成停机小时未输入！`)
+          isForbidden = true
+          break
+        }
+        if (
+          new Date(item.obsStarTime).getTime() >
+          new Date(item.expectTime + ' 23:59:59').getTime()
+        ) {
+          this.$message.warning(`第${i + 1}条数据发现时间大于处理时间！`)
+          isForbidden = true
+          break
+        }
+        if (new Date(item.obsStarTime).getTime() > new Date().getTime()) {
+          this.$message.warning(`第${i + 1}条数据发现时间大于当前时间！`)
+          isForbidden = true
+          break
+        }
+      }
+      if (isForbidden) return
+      let timeoutIndexList = []
+      //上报时间大于处理时间expectTime
+      for (let i = 0; i < list.length; i++) {
+        let item = list[i]
+        if (
+          new Date().getTime() >
+          new Date(item.expectTime + ' 23:59:59').getTime()
+        ) {
+          // this.$message.warning(`第${i + 1}条数据发现时间大于处理时间！`)
+          timeoutIndexList.push(i)
+        }
+      }
+      if (timeoutIndexList.length !== 0) {
+        let str = ''
+        timeoutIndexList.forEach(item => (str += item + 1 + ','))
+        this.$notify.warning({
+          title: '上报时间大于计划处理时间',
+          message:
+            '存在上报时间大于计划处理时间的数据索引：' +
+            str +
+            ' 请及时更新处理状态是否完成！',
+          duration: 2000
+        })
+      }
+      list.forEach(item => {
+        item.hndlStus = 'A'
+        item.status = 'A'
+        item.creUserNo = this.userNo
+      })
+      let obj = {
+        EquipDangers: list,
+        userNo: this.userNo
+      }
+      post(batchAdd, obj)
+        .then(res => {
+          if (res.success === true) {
+            this.$message.success('新增成功！')
+            this.doubleSelectList.forEach(item => {
+              this.formInline.EquipDangers.forEach((ed, index) => {
+                if (ed.deleteIndex === item.deleteIndex) {
+                  this.formInline.EquipDangers.splice(index, 1)
+                }
+              })
+            })
+            this.doubleSelectList = []
+          } else {
+            this.$message.error(res.message)
+          }
+        })
+        .catch(err => {
+          this.$message.error('新增失败！' + err)
+          console.log(err)
+        })
+    },
+    //删除
+    deleteLine(val) {
+      this.formInline.EquipDangers.splice(val, 1)
     }
   }
 }
@@ -1328,7 +1435,6 @@ export default {
 
 <style scoped lang="less">
 .contentBox {
-  padding: 15px;
   .el-form-header {
     display: flex;
     justify-content: flex-end;

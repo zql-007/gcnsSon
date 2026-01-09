@@ -1,6 +1,5 @@
 <template>
-  <div
-    class="contentBox">
+  <div class="contentBox">
     <el-card class="CardTable">
       <div style="margin-left: 20px">
         <span class="headStyle">{{ factoryName }}隐患跟踪统计表</span>
@@ -126,6 +125,18 @@
               </div>
             </template>
           </el-table-column>
+          <!--          <el-table-column
+            :render-header="columnClick"
+            prop="NOTDEAL"
+            align="center"
+            label="未处理"
+            width="">
+            <template slot-scope="scope">
+              <div
+                :class="[scope.row.NOTDEAL !== '' ? 'textStyle':'textStyleLast']"
+                @click="departClick(scope.row,'NOTDEAL')">{{ scope.row.NOTDEAL }}</div>
+            </template>
+          </el-table-column>-->
         </el-table>
       </div>
     </el-card>
@@ -150,7 +161,7 @@
               :y-axis="lineOption1.yAxis"
               :series="lineOption1.series"
               :data-zoom="lineOption1.dataZoom"
-              :_height="'372px'"
+              :_height="'357px'"
               @chart-click-data="clickEchartsBusiness"
             />
           </div>
@@ -200,7 +211,7 @@
               :legend="lineOption2.legend"
               :color="lineOption2.color"
               :series="lineOption2.series"
-              :_height="'352px'"
+              :_height="'310px'"
               @chart-click-data="clickEchartsAuto"
             />
           </div>
@@ -213,7 +224,7 @@
     >
       <el-col :span="12">
         <el-card
-          style="min-height: 340px; margin-bottom: 24px;"
+          style="min-height: 370px; margin-bottom: 24px;"
           class="CardTable"
         >
           <div style="margin-left: 20px; margin-bottom: 20px;">
@@ -228,7 +239,7 @@
                 :offset="17"
                 align="right"
               >
-                <!--                <div
+                <div
                   style="display: inline-block; margin-left: 12px;"
                   @click="clickFaultAndDanger('2')"
                 >
@@ -251,7 +262,7 @@
                     ></div>
                     <span style="font-weight: 400;font-size: 12px; margin-left: 4px;">故障</span>
                   </div>
-                </div>-->
+                </div>
               </el-col>
             </el-row>
           </div>
@@ -266,7 +277,7 @@
                 :legend="item.legend"
                 :graphic="item.graphic"
                 :series="item.series"
-                :_height="'226px'"
+                :_height="'200px'"
                 @chart-click-data="clickEchartsRisk"
                 @chart-legendselectchanged="clickLegendSelectChanged"
               />
@@ -291,7 +302,7 @@
       </el-col>
       <el-col :span="12">
         <el-card
-          style="height: 340px"
+          style="height: 370px"
           class="CardTable"
         >
           <div style="margin-left: 20px; margin-bottom: 24px;">
@@ -429,18 +440,17 @@
 <script>
 import tasilyEcharts from '@/components/TasilyEcharts'
 import moment from 'moment'
-// 注释掉接口引入，避免接口调用错误
-// import {
-//   findAllByTableId,
-//   findAllDangerHandleRecord,
-//   findAllDangerInfoList,
-//   queryAllDangerInfoByFactory,
-//   queryAllDangerProportionInfoByFactory,
-//   queryAllDangerSourceInfoByFactory,
-//   queryNotDealDangerInfoByFactory,
-//   queryWorkDeptInfo
-// } from '@/lib/RiskManageApi'
-// import { post } from '@/lib/Util'
+import {
+  findAllByTableId,
+  findAllDangerHandleRecord,
+  findAllDangerInfoList,
+  queryAllDangerInfoByFactory,
+  queryAllDangerProportionInfoByFactory,
+  queryAllDangerSourceInfoByFactory,
+  queryNotDealDangerInfoByFactory,
+  queryWorkDeptInfo
+} from '@/lib/EquipPrecisManage/RiskManageApi'
+import { post } from '@/lib/Util'
 import {
   getYearFirstDay,
   getYearLastDay,
@@ -497,75 +507,21 @@ export default {
       },
       newWorkDeptList: [],
       newWorkDeptList2: [],
-      // 表格假数据
       tableList: [
-        {
-          id: '1',
-          FACTORYNAME: '',
-          FACTORYNO: '',
-          WORKDEPTNO: '1',
-          WORKDEPTNAME: '原料车间',
-          NOMAL: 5, //一般隐患
-          BIGGER: 2, //较大隐患
-          MAJOR: 1, //重大隐患
-          TOTAL: 8, //总计
-          DEAL: 10, //已处理
-          NOTDEAL: 8 //未处理
-        },
-        {
-          id: '2',
-          FACTORYNAME: '',
-          FACTORYNO: '',
-          WORKDEPTNO: '2',
-          WORKDEPTNAME: '转炉车间',
-          NOMAL: 3,
-          BIGGER: 1,
-          MAJOR: 0,
-          TOTAL: 4,
-          DEAL: 7,
-          NOTDEAL: 4
-        },
-        {
-          id: '3',
-          FACTORYNAME: '',
-          FACTORYNO: '',
-          WORKDEPTNO: '3',
-          WORKDEPTNAME: '精炼车间',
-          NOMAL: 6,
-          BIGGER: 3,
-          MAJOR: 1,
-          TOTAL: 10,
-          DEAL: 12,
-          NOTDEAL: 10
-        },
-        {
-          id: '4',
-          FACTORYNAME: '',
-          FACTORYNO: '',
-          WORKDEPTNO: '4',
-          WORKDEPTNAME: '连铸车间',
-          NOMAL: 4,
-          BIGGER: 2,
-          MAJOR: 0,
-          TOTAL: 6,
-          DEAL: 9,
-          NOTDEAL: 6
-        },
         {
           id: '5',
           FACTORYNAME: '',
-          FACTORYNO: '',
-          WORKDEPTNO: '5',
+          FACTORYNO: '', //生产厂
+          WORKDEPTNO: '5', //车间
           WORKDEPTNAME: '总计',
-          NOMAL: 18,
-          BIGGER: 8,
-          MAJOR: 2,
-          TOTAL: 28,
-          DEAL: 38,
-          NOTDEAL: 28
+          NOMAL: 0, //一般隐患
+          BIGGER: 0, //较大隐患
+          MAJOR: 0, //重大隐患
+          TOTAL: 0, //总计
+          DEAL: 0, //已处理
+          NOTDEAL: 0 //未处理
         }
       ],
-      // 未处理隐患柱状图配置（假数据）
       lineOption1: {
         tooltip: {
           trigger: 'axis',
@@ -593,15 +549,16 @@ export default {
         xAxis: [
           {
             type: 'category',
-            axisPointer: {
-              type: 'shadow'
+            axisLine: {
+              lineStyle: {
+                color: '#d4d7da'
+              }
             },
-            axisTick: {
-              show: false // 隐藏Y轴的刻度线
+            splitLine: {
+              show: true,
+              lineStyle: { color: '#d4d7da' }
             },
-            // axisLabel: { interval: 0 }, //横坐标显示不全
-            axisLine: { show: false }, //只隐藏 Y 轴线
-            data: ['原料车间', '转炉车间', '精炼车间', '连铸车间']
+            data: ['机修车间', '电气车间', '精整车间', '产品车间']
           }
         ],
         yAxis: [
@@ -609,6 +566,9 @@ export default {
             type: 'value',
             axisLine: {
               show: false
+              /* lineStyle: {
+                  color: 'red'
+                }*/
             },
             splitLine: { lineStyle: { color: '#d4d7da' } }
           }
@@ -618,9 +578,10 @@ export default {
             name: '一般隐患',
             type: 'bar',
             barGap: 0.22,
-            barWidth: 14,
-            data: [5, 3, 6, 4],
-            color: '#3391ff',
+            barWidth: 10,
+            data: [8, 7, 2, 3, 0, 0, 4],
+            color: '#61A4E4',
+            //柱状图显示上方数字
             label: {
               normal: {
                 show: true,
@@ -635,9 +596,9 @@ export default {
             name: '较大隐患',
             type: 'bar',
             barGap: 0.22,
-            barWidth: 14,
-            data: [2, 1, 3, 2],
-            color: '#ff9800',
+            barWidth: 10,
+            data: [9, 3, 6, 5, 0, 0, 6],
+            color: '#FFA958',
             label: {
               normal: {
                 show: true,
@@ -651,10 +612,10 @@ export default {
           {
             name: '重大隐患',
             type: 'bar',
-            barWidth: 14,
+            barWidth: 10,
             barGap: 0.22,
-            data: [1, 0, 1, 0],
-            color: '#f45549',
+            data: [4, 7, 2, 2, 0, 0, 5],
+            color: '#F56C6C',
             label: {
               normal: {
                 show: true,
@@ -666,35 +627,53 @@ export default {
             }
           }
         ],
-        dataZoom: []
-      },
-      // 自动、人工数据采集比例（假数据）
+        dataZoom: [
+          /*  {
+            show: true,
+            realtime: true,
+            start: 0,
+            end: 10,
+            zoomOnMouseWheel: false
+          },
+          {
+            type: 'inside',
+            realtime: true,
+            start: 0,
+            end: 10,
+            zoomOnMouseWheel: false
+          }*/
+        ]
+      }, //目前未处理隐患柱状图（车间）
       lineOption2: {
         title: {
           left: 'center'
         },
         tooltip: {
           trigger: 'item',
-          formatter: '{b}:\n{c}条\n{d}%'
+          formatter: '{b}:\n{c}条\n{d}%' //模板变量有 {a}、{b}、{c}、{d}，分别表示系列名，数据名，数据值，百分比。
         },
         legend: {
           orient: 'vertical',
           left: 'left',
+          //左上角饼状图显示按钮
           show: false
         },
+        // color: ['#61A4E4', '#FFA958'], //自定义饼图颜色
         series: [
           {
             type: 'pie',
             radius: '90%',
+            //设置白色间隙
             itemStyle: {
               borderWidth: 2,
               borderColor: '#fff'
             },
+            //文字显示在饼状图内
             label: {
               formatter: '{b}\n{c}条',
               position: 'inside'
             },
-            color: ['#3391ff', '#ff9800'],
+            color: ['#61a4e4', '#FFA958'],
             data: [
               { value: 600, name: '自动采集' },
               { value: 400, name: '人工采集' }
@@ -708,7 +687,7 @@ export default {
             }
           }
         ]
-      },
+      }, //自动、人工数据采集比例
       lineOption3: {
         tooltip: {
           trigger: 'axis',
@@ -747,6 +726,10 @@ export default {
               lineStyle: { color: '#d4d7da' }
             },
             data: ['机修车间', '电气车间', '精整车间', '产品车间']
+            //x轴字体倾斜
+            // axisLabel: {
+            //   rotate: 35
+            // }
           }
         ],
         yAxis: [
@@ -754,6 +737,9 @@ export default {
             type: 'value',
             axisLine: {
               show: false
+              /* lineStyle: {
+                  color: 'red'
+                }*/
             },
             splitLine: { lineStyle: { color: '#d4d7da' } }
           }
@@ -764,8 +750,30 @@ export default {
             type: 'bar',
             barGap: 0.22,
             barWidth: 16,
-            data: [6, 7, 8, 7],
+            data: [
+              {
+                value: 6,
+                itemStyle: {
+                  color: '#FFA958'
+                }
+              },
+              {
+                value: 7,
+                itemStyle: {
+                  color: '#FFA958'
+                }
+              },
+              8,
+              7
+              /*{
+                value: 4,
+                itemStyle: {
+                  color: '#F56C6C'
+                }
+              }*/
+            ],
             color: '#61A4E4',
+            //柱状图显示上方数字
             label: {
               normal: {
                 show: true,
@@ -777,9 +785,24 @@ export default {
             }
           }
         ],
-        dataZoom: []
-      },
-      // 各生产车间故障次数/隐患构成（假数据）
+        dataZoom: [
+          /*  {
+            show: true,
+            realtime: true,
+            start: 0,
+            end: 10,
+            zoomOnMouseWheel: false
+          },
+          {
+            type: 'inside',
+            realtime: true,
+            start: 0,
+            end: 10,
+            zoomOnMouseWheel: false
+          }*/
+        ]
+      }, //绩效分评价
+      /*--------各生产车间故障次数/隐患构成-----------*/
       lineOption4: {
         tooltip: {
           trigger: 'item'
@@ -787,7 +810,7 @@ export default {
         legend: {
           top: '5%',
           left: 'right',
-          show: false
+          show: false //右上角按钮显示
         },
         graphic: [
           {
@@ -795,7 +818,7 @@ export default {
             left: '40%',
             top: '40%',
             style: {
-              text: '原料车间',
+              text: '机修车间',
               textAlign: 'center',
               fill: '#AEAEB7',
               width: 30,
@@ -828,10 +851,7 @@ export default {
             labelLine: {
               show: false
             },
-            data: [
-              { value: 8, name: '隐患', color: '#FFA958' },
-              { value: 5, name: '故障', color: '#61A4E4' }
-            ]
+            data: [{ value: 10, name: '隐患' }, { value: 6, name: '故障' }]
           }
         ]
       },
@@ -842,7 +862,7 @@ export default {
         legend: {
           top: '5%',
           left: 'right',
-          show: false
+          show: false //右上角按钮显示
         },
         graphic: [
           {
@@ -850,7 +870,7 @@ export default {
             left: '40%',
             top: '63%',
             style: {
-              text: '转炉车间',
+              text: '电气车间',
               textAlign: 'center',
               fill: '#AEAEB7',
               width: 30,
@@ -865,7 +885,7 @@ export default {
           {
             type: 'pie',
             radius: ['40%', '70%'],
-            center: ['50%', '65%'],
+            center: ['50%', '65%'], //移动环形图，圆心坐标（div中的%比例）
             avoidLabelOverlap: false,
             label: {
               show: true,
@@ -883,10 +903,7 @@ export default {
             labelLine: {
               show: false
             },
-            data: [
-              { value: 4, name: '隐患', color: '#FFA958' },
-              { value: 3, name: '故障', color: '#61A4E4' }
-            ]
+            data: [{ value: 10, name: '隐患' }, { value: 6, name: '故障' }]
           }
         ]
       },
@@ -897,7 +914,7 @@ export default {
         legend: {
           top: '5%',
           left: 'right',
-          show: false
+          show: false //右上角按钮显示
         },
         graphic: [
           {
@@ -905,7 +922,7 @@ export default {
             left: '40%',
             top: '40%',
             style: {
-              text: '精炼车间',
+              text: '精整车间',
               textAlign: 'center',
               fill: '#AEAEB7',
               width: 30,
@@ -938,10 +955,7 @@ export default {
             labelLine: {
               show: false
             },
-            data: [
-              { value: 10, name: '隐患', color: '#FFA958' },
-              { value: 6, name: '故障', color: '#61A4E4' }
-            ]
+            data: [{ value: 10, name: '隐患' }, { value: 6, name: '故障' }]
           }
         ]
       },
@@ -952,8 +966,8 @@ export default {
         legend: {
           top: '0%',
           right: '5%',
-          show: true,
-          selectedMode: false
+          show: true, //右上角按钮显示
+          selectedMode: false //是否允许点击
         },
         graphic: [
           {
@@ -961,7 +975,7 @@ export default {
             left: '40%',
             top: '63%',
             style: {
-              text: '连铸车间',
+              text: '产品车间',
               textAlign: 'center',
               fill: '#AEAEB7',
               width: 30,
@@ -994,41 +1008,13 @@ export default {
             labelLine: {
               show: false
             },
-            data: [
-              { value: 6, name: '隐患', color: '#FFA958' },
-              { value: 4, name: '故障', color: '#61A4E4' }
-            ]
+            data: [{ value: 10, name: '隐患' }, { value: 6, name: '故障' }]
           }
         ]
       },
-      // 隐患事项表格假数据
-      tableDataRisk: [
-        {
-          id: '1',
-          obsStarTime: '2023-10-01 08:30:00',
-          area: '传送带A区',
-          dangerDesc: '传送带运行时有异响，可能存在轴承磨损问题'
-        },
-        {
-          id: '2',
-          obsStarTime: '2023-10-02 14:15:00',
-          area: '熔炉B组',
-          dangerDesc: '熔炉温度传感器显示异常，需校准'
-        },
-        {
-          id: '3',
-          obsStarTime: '2023-10-03 10:45:00',
-          area: '冷却系统',
-          dangerDesc: '冷却水管路存在轻微泄漏'
-        },
-        {
-          id: '4',
-          obsStarTime: '2023-10-04 16:20:00',
-          area: '控制系统',
-          dangerDesc: '操作台部分按钮反应迟缓'
-        }
-      ],
-      total: 12, // 假数据总数
+      tableDataRisk: [], //隐患事项
+      total: 0,
+      //隐患级别列表
       fangerGradeList: [
         {
           id: 'A',
@@ -1043,7 +1029,8 @@ export default {
           name: '重大隐患'
         }
       ],
-      factoryList: this.$store.getters['factory/getFactoryList'] || [],
+      factoryList: this.$store.getters['factory/getFactoryList'] || [], //产线
+      //车间列表
       workDeptList: [
         {
           id: '1',
@@ -1102,194 +1089,15 @@ export default {
           name: '石灰车间'
         }
       ],
-      dangerAndFailureList: [],
-      // 隐患故障分布图数据
-      dangerAndFailureOptionList: [
-        {
-          tooltip: { trigger: 'item' },
-          legend: { selected: { 隐患: true, 故障: true }, show: false },
-          graphic: [
-            {
-              type: 'text',
-              left: '40%',
-              top: '40%',
-              style: {
-                text: '原料车间',
-                textAlign: 'center',
-                fill: '#AEAEB7',
-                width: 30,
-                height: 30,
-                fontSize: 10,
-                color: '#606266',
-                fontFamily: 'Microsoft YaHei'
-              }
-            }
-          ],
-          series: [
-            {
-              type: 'pie',
-              radius: ['40%', '70%'],
-              center: ['50%', '42%'],
-              color: ['#3391ff', '#ff9800'],
-              labelLine: {
-                show: false
-              },
-              data: [
-                { value: 8, name: '隐患', color: '#ff9800', per: 61.5 },
-                { value: 5, name: '故障', color: '#3391ff', per: 38.5 }
-              ]
-            }
-          ]
-        },
-        {
-          tooltip: { trigger: 'item' },
-          legend: { selected: { 隐患: true, 故障: true }, show: false },
-          graphic: [
-            {
-              type: 'text',
-              left: '40%',
-              top: '63%',
-              style: {
-                text: '转炉车间',
-                textAlign: 'center',
-                fill: '#AEAEB7',
-                width: 30,
-                height: 30,
-                fontSize: 10,
-                color: '#606266',
-                fontFamily: 'Microsoft YaHei'
-              }
-            }
-          ],
-          series: [
-            {
-              type: 'pie',
-              radius: ['40%', '70%'],
-              center: ['50%', '65%'],
-              color: ['#3391ff', '#ff9800'],
-              labelLine: {
-                show: false
-              },
-              data: [
-                { value: 4, name: '隐患', color: '#ff9800', per: 57.1 },
-                { value: 3, name: '故障', color: '#3391ff', per: 42.9 }
-              ]
-            }
-          ]
-        },
-        {
-          tooltip: { trigger: 'item' },
-          legend: { selected: { 隐患: true, 故障: true }, show: false },
-          graphic: [
-            {
-              type: 'text',
-              left: '40%',
-              top: '40%',
-              style: {
-                text: '精炼车间',
-                textAlign: 'center',
-                fill: '#AEAEB7',
-                width: 30,
-                height: 30,
-                fontSize: 10,
-                color: '#606266',
-                fontFamily: 'Microsoft YaHei'
-              }
-            }
-          ],
-          series: [
-            {
-              type: 'pie',
-              radius: ['40%', '70%'],
-              center: ['50%', '42%'],
-              color: ['#3391ff', '#ff9800'],
-              labelLine: {
-                show: false
-              },
-              data: [
-                { value: 10, name: '隐患', color: '#ff9800', per: 62.5 },
-                { value: 6, name: '故障', color: '#3391ff', per: 37.5 }
-              ]
-            }
-          ]
-        },
-        {
-          tooltip: { trigger: 'item' },
-          legend: { selected: { 隐患: true, 故障: true }, show: false },
-          graphic: [
-            {
-              type: 'text',
-              left: '40%',
-              top: '63%',
-              style: {
-                text: '连铸车间',
-                textAlign: 'center',
-                fill: '#AEAEB7',
-                width: 30,
-                height: 30,
-                fontSize: 10,
-                color: '#606266',
-                fontFamily: 'Microsoft YaHei'
-              }
-            }
-          ],
-          series: [
-            {
-              type: 'pie',
-              radius: ['40%', '70%'],
-              center: ['50%', '65%'],
-              color: ['#3391ff', '#ff9800'],
-              labelLine: {
-                show: false
-              },
-              data: [
-                { value: 6, name: '隐患', color: '#ff9800', per: 60 },
-                { value: 4, name: '故障', color: '#3391ff', per: 40 }
-              ]
-            }
-          ]
-        }
-      ],
-      faultDangerType: '3',
-      // 处置过程假数据
-      workContentList: [
-        {
-          id: '1',
-          creDate: '2023-10-01',
-          creDateTime: '09:00',
-          creUserNo: '张三',
-          workContent: '发现隐患并上报'
-        },
-        {
-          id: '2',
-          creDate: '2023-10-01',
-          creDateTime: '10:30',
-          creUserNo: '李四',
-          workContent: '安排维修人员处理'
-        },
-        {
-          id: '3',
-          creDate: '2023-10-01',
-          creDateTime: '14:20',
-          creUserNo: '王五',
-          workContent: '已完成维修，设备正常运行'
-        }
-      ],
-      dangerDesc:
-        '传送带运行时有异响，经检查发现是轴承磨损导致，需要更换新轴承。',
-      emergencyResponse:
-        '1. 立即降低传送带运行速度；2. 安排维修人员准备备件；3. 停机维修前做好安全防护措施。',
-      hndlType:
-        '1. 更换磨损轴承；2. 对传送带进行全面检查；3. 加注润滑剂；4. 测试运行确认正常。',
+      dangerAndFailureList: [], //隐患故障分布图
+      dangerAndFailureOptionList: [], //隐患故障分布图
+      faultDangerType: '3', //隐患故障图例类型
+      workContentList: [], //处置过程跟踪
+      dangerDesc: '', // 隐患情况说明
+      emergencyResponse: '', //应急预案
+      hndlType: '', //处置方法
       dialogVisible: false,
-      testN: '',
-      // 新增：自动/人工采集数据列表（假数据）
-      manualAndAutoList: [
-        { workDeptNo: '1', SYSTEMNUM: 520, ARTIFICIALNUM: 380 },
-        { workDeptNo: '2', SYSTEMNUM: 480, ARTIFICIALNUM: 320 },
-        { workDeptNo: '3', SYSTEMNUM: 650, ARTIFICIALNUM: 450 },
-        { workDeptNo: '4', SYSTEMNUM: 420, ARTIFICIALNUM: 280 }
-      ]
+      testN: ''
     }
   },
   watch: {
@@ -1332,10 +1140,12 @@ export default {
             {
               type: 'pie',
               radius: '90%',
+              //设置白色间隙
               itemStyle: {
                 borderWidth: 2,
                 borderColor: '#fff'
               },
+              //文字显示在饼状图内
               label: {
                 formatter: '{b}\n{c}条\n{d}%',
                 position: 'inside'
@@ -1358,10 +1168,12 @@ export default {
             {
               type: 'pie',
               radius: '90%',
+              //设置白色间隙
               itemStyle: {
                 borderWidth: 2,
                 borderColor: '#fff'
               },
+              //文字显示在饼状图内
               label: {
                 formatter: '{b}\n{c}条\n{d}%',
                 position: 'inside'
@@ -1387,22 +1199,19 @@ export default {
   created() {
     this.initData()
   },
-  mounted() {},
   methods: {
     setCheckTime(val) {
       this.formTime.beginDate = val[0]
       this.formTime.endDate = val[1]
-      // 注释接口调用，使用假数据刷新
-      // this.queryAll()
-      // this.queryNotDeal()
-      // this.queryDangerInfo()
-      // this.queryAllDangerSource()
-      // this.queryAllDangerProportion()
-
-      // 模拟数据刷新效果
-      console.log('日期范围已变更', val)
+      this.queryAll()
+      this.queryNotDeal()
+      this.queryDangerInfo()
+      this.queryAllDangerSource()
+      this.queryAllDangerProportion()
     },
     initData() {
+      // this.$set(this.checkTime, 0, this.formTime.beginDate)
+      // this.$set(this.checkTime, 1, this.formTime.endDate)
       let today = moment(new Date().getTime())
         .format('YYYY-MM-DD')
         .split('-')
@@ -1423,88 +1232,1066 @@ export default {
       }
       this.formTime.beginDate = this.checkTime[0]
       this.formTime.endDate = this.checkTime[1]
-      this.factoryName = this.$route.query.factoryName || '示范工厂' // 默认工厂名称
-      this.factoryNo = this.$route.query.factoryNo || 'F001' // 默认工厂编号
-      this.formTime.factoryNo = this.factoryNo
-      this.dangerSearchForm.factoryNo = this.factoryNo
-
-      // 初始化车间列表数据
-      this.newWorkDeptList2 = this.workDeptList.map(item => ({
-        id: item.id,
-        name: item.name
-      }))
-
-      // 注释掉接口调用相关代码
-      // this.factoryList.forEach(item => {
-      //   if (item.name === this.factoryName) {
-      //     this.formTime.factoryNo = item.id
-      //     this.formTime.factoryCode = item.orgCode
-      //     this.dangerSearchForm.factoryNo = item.id
-      //   }
-      // })
-
-      // 模拟接口调用后的初始化操作
-      console.log('页面初始化完成，使用假数据展示')
-    },
-    // 以下为原有方法保留，不涉及接口调用
-    departClick(row, type) {
-      console.log('点击了表格数据', row, type)
-    },
-    columnClick(h, { column, $index }) {
-      return h(
-        'span',
-        {
-          style: { cursor: 'pointer' },
-          on: {
-            click: () => {
-              console.log('点击了表头', column, $index)
-            }
-          }
-        },
-        column.label
+      this.factoryName = this.$route.query.factoryName
+      this.factoryNo = this.$route.query.factoryNo
+      this.formTime.factoryNo = this.$route.query.factoryNo
+      this.dangerSearchForm.factoryNo = this.$route.query.factoryNo
+      this.factoryList.forEach(item => {
+        if (item.name === this.factoryName) {
+          this.formTime.factoryNo = item.id
+          this.formTime.factoryCode = item.orgCode
+          this.dangerSearchForm.factoryNo = item.id
+          // switch (this.factoryName) {
+          //   case '第一炼钢厂':
+          //     this.tableList = [
+          //       {
+          //         FACTORYNO: item.factoryNo, //生产厂
+          //         FACTORYCODE: item.FACTORYCODE,
+          //         FACTORYNAME: item.factoryName,
+          //         WORKDEPTNO: '', //车间
+          //         WORKDEPTNAME: '原料车间',
+          //         NOMAL: 0, //一般隐患
+          //         BIGGER: 0, //较大隐患
+          //         MAJOR: 0, //重大隐患
+          //         TOTAL: 0, //总计
+          //         DEAL: 0, //已处理
+          //         NOTDEAL: 0 //未处理
+          //       },
+          //       {
+          //         FACTORYNO: item.factoryNo, //生产厂
+          //         FACTORYCODE: item.FACTORYCODE,
+          //         FACTORYNAME: item.factoryName,
+          //         WORKDEPTNO: '', //车间
+          //         WORKDEPTNAME: '连铸车间',
+          //         NOMAL: 0, //一般隐患
+          //         BIGGER: 0, //较大隐患
+          //         MAJOR: 0, //重大隐患
+          //         TOTAL: 0, //总计
+          //         DEAL: 0, //已处理
+          //         NOTDEAL: 0 //未处理
+          //       },
+          //       {
+          //         FACTORYNO: item.factoryNo, //生产厂
+          //         FACTORYCODE: item.FACTORYCODE,
+          //         FACTORYNAME: item.factoryName,
+          //         WORKDEPTNO: '', //车间
+          //         WORKDEPTNAME: '精炼车间',
+          //         NOMAL: 0, //一般隐患
+          //         BIGGER: 0, //较大隐患
+          //         MAJOR: 0, //重大隐患
+          //         TOTAL: 0, //总计
+          //         DEAL: 0, //已处理
+          //         NOTDEAL: 0 //未处理
+          //       },
+          //       {
+          //         FACTORYNO: item.factoryNo, //生产厂
+          //         FACTORYCODE: item.FACTORYCODE,
+          //         FACTORYNAME: item.factoryName,
+          //         WORKDEPTNO: '', //车间
+          //         WORKDEPTNAME: '运行车间',
+          //         NOMAL: 0, //一般隐患
+          //         BIGGER: 0, //较大隐患
+          //         MAJOR: 0, //重大隐患
+          //         TOTAL: 0, //总计
+          //         DEAL: 0, //已处理
+          //         NOTDEAL: 0 //未处理
+          //       },
+          //       {
+          //         FACTORYNO: item.factoryNo, //生产厂
+          //         FACTORYCODE: item.FACTORYCODE,
+          //         FACTORYNAME: item.factoryName,
+          //         WORKDEPTNO: '', //车间
+          //         WORKDEPTNAME: '转炉车间',
+          //         NOMAL: 0, //一般隐患
+          //         BIGGER: 0, //较大隐患
+          //         MAJOR: 0, //重大隐患
+          //         TOTAL: 0, //总计
+          //         DEAL: 0, //已处理
+          //         NOTDEAL: 0 //未处理
+          //       }
+          //     ]
+          //     break
+          //   case '中厚板卷厂':
+          //     this.tableList = [
+          //       {
+          //         FACTORYNO: item.factoryNo, //生产厂
+          //         FACTORYCODE: item.FACTORYCODE,
+          //         FACTORYNAME: item.factoryName,
+          //         WORKDEPTNO: '', //车间
+          //         WORKDEPTNAME: '机修车间',
+          //         NOMAL: 0, //一般隐患
+          //         BIGGER: 0, //较大隐患
+          //         MAJOR: 0, //重大隐患
+          //         TOTAL: 0, //总计
+          //         DEAL: 0, //已处理
+          //         NOTDEAL: 0 //未处理
+          //       },
+          //       {
+          //         FACTORYNO: item.factoryNo, //生产厂
+          //         FACTORYCODE: item.FACTORYCODE,
+          //         FACTORYNAME: item.factoryName,
+          //         WORKDEPTNO: '', //车间
+          //         WORKDEPTNAME: '精整车间',
+          //         NOMAL: 0, //一般隐患
+          //         BIGGER: 0, //较大隐患
+          //         MAJOR: 0, //重大隐患
+          //         TOTAL: 0, //总计
+          //         DEAL: 0, //已处理
+          //         NOTDEAL: 0 //未处理
+          //       },
+          //       {
+          //         FACTORYNO: item.factoryNo, //生产厂
+          //         FACTORYCODE: item.FACTORYCODE,
+          //         FACTORYNAME: item.factoryName,
+          //         WORKDEPTNO: '', //车间
+          //         WORKDEPTNAME: '电修车间',
+          //         NOMAL: 0, //一般隐患
+          //         BIGGER: 0, //较大隐患
+          //         MAJOR: 0, //重大隐患
+          //         TOTAL: 0, //总计
+          //         DEAL: 0, //已处理
+          //         NOTDEAL: 0 //未处理
+          //       }
+          //     ]
+          //     break
+          //   case '宽厚板厂':
+          //     this.tableList = [
+          //       {
+          //         FACTORYNO: item.factoryNo, //生产厂
+          //         FACTORYCODE: item.FACTORYCODE,
+          //         FACTORYNAME: item.factoryName,
+          //         WORKDEPTNO: '', //车间
+          //         WORKDEPTNAME: '机修车间',
+          //         NOMAL: 0, //一般隐患
+          //         BIGGER: 0, //较大隐患
+          //         MAJOR: 0, //重大隐患
+          //         TOTAL: 0, //总计
+          //         DEAL: 0, //已处理
+          //         NOTDEAL: 0 //未处理
+          //       },
+          //       {
+          //         FACTORYNO: item.factoryNo, //生产厂
+          //         FACTORYCODE: item.FACTORYCODE,
+          //         FACTORYNAME: item.factoryName,
+          //         WORKDEPTNO: '', //车间
+          //         WORKDEPTNAME: '精整车间',
+          //         NOMAL: 0, //一般隐患
+          //         BIGGER: 0, //较大隐患
+          //         MAJOR: 0, //重大隐患
+          //         TOTAL: 0, //总计
+          //         DEAL: 0, //已处理
+          //         NOTDEAL: 0 //未处理
+          //       },
+          //       {
+          //         FACTORYNO: item.factoryNo, //生产厂
+          //         FACTORYCODE: item.FACTORYCODE,
+          //         FACTORYNAME: item.factoryName,
+          //         WORKDEPTNO: '', //车间
+          //         WORKDEPTNAME: '电修车间',
+          //         NOMAL: 0, //一般隐患
+          //         BIGGER: 0, //较大隐患
+          //         MAJOR: 0, //重大隐患
+          //         TOTAL: 0, //总计
+          //         DEAL: 0, //已处理
+          //         NOTDEAL: 0 //未处理
+          //       },
+          //       {
+          //         FACTORYNO: item.factoryNo, //生产厂
+          //         FACTORYCODE: item.FACTORYCODE,
+          //         FACTORYNAME: item.factoryName,
+          //         WORKDEPTNO: '', //车间
+          //         WORKDEPTNAME: '热处理车间',
+          //         NOMAL: 0, //一般隐患
+          //         BIGGER: 0, //较大隐患
+          //         MAJOR: 0, //重大隐患
+          //         TOTAL: 0, //总计
+          //         DEAL: 0, //已处理
+          //         NOTDEAL: 0 //未处理
+          //       }
+          //     ]
+          //     break
+          //   case '中板厂':
+          //     this.tableList = [
+          //       {
+          //         FACTORYNO: item.factoryNo, //生产厂
+          //         FACTORYCODE: item.FACTORYCODE,
+          //         FACTORYNAME: item.factoryName,
+          //         WORKDEPTNO: '', //车间
+          //         WORKDEPTNAME: '机修车间',
+          //         NOMAL: 0, //一般隐患
+          //         BIGGER: 0, //较大隐患
+          //         MAJOR: 0, //重大隐患
+          //         TOTAL: 0, //总计
+          //         DEAL: 0, //已处理
+          //         NOTDEAL: 0 //未处理
+          //       },
+          //       {
+          //         FACTORYNO: item.factoryNo, //生产厂
+          //         FACTORYCODE: item.FACTORYCODE,
+          //         FACTORYNAME: item.factoryName,
+          //         WORKDEPTNO: '', //车间
+          //         WORKDEPTNAME: '精整车间',
+          //         NOMAL: 0, //一般隐患
+          //         BIGGER: 0, //较大隐患
+          //         MAJOR: 0, //重大隐患
+          //         TOTAL: 0, //总计
+          //         DEAL: 0, //已处理
+          //         NOTDEAL: 0 //未处理
+          //       },
+          //       {
+          //         FACTORYNO: item.factoryNo, //生产厂
+          //         FACTORYCODE: item.FACTORYCODE,
+          //         FACTORYNAME: item.factoryName,
+          //         WORKDEPTNO: '', //车间
+          //         WORKDEPTNAME: '产品车间',
+          //         NOMAL: 0, //一般隐患
+          //         BIGGER: 0, //较大隐患
+          //         MAJOR: 0, //重大隐患
+          //         TOTAL: 0, //总计
+          //         DEAL: 0, //已处理
+          //         NOTDEAL: 0 //未处理
+          //       },
+          //       {
+          //         FACTORYNO: item.factoryNo, //生产厂
+          //         FACTORYCODE: item.FACTORYCODE,
+          //         FACTORYNAME: item.factoryName,
+          //         WORKDEPTNO: '', //车间
+          //         WORKDEPTNAME: '电修车间',
+          //         NOMAL: 0, //一般隐患
+          //         BIGGER: 0, //较大隐患
+          //         MAJOR: 0, //重大隐患
+          //         TOTAL: 0, //总计
+          //         DEAL: 0, //已处理
+          //         NOTDEAL: 0 //未处理
+          //       }
+          //     ]
+          //     break
+          //   case '金石材料厂':
+          //     this.tableList = [
+          //       {
+          //         FACTORYNO: item.factoryNo, //生产厂
+          //         FACTORYCODE: item.FACTORYCODE,
+          //         FACTORYNAME: item.factoryName,
+          //         WORKDEPTNO: '', //车间
+          //         WORKDEPTNAME: '渣处理车间',
+          //         NOMAL: 0, //一般隐患
+          //         BIGGER: 0, //较大隐患
+          //         MAJOR: 0, //重大隐患
+          //         TOTAL: 0, //总计
+          //         DEAL: 0, //已处理
+          //         NOTDEAL: 0 //未处理
+          //       },
+          //       {
+          //         FACTORYNO: item.factoryNo, //生产厂
+          //         FACTORYCODE: item.FACTORYCODE,
+          //         FACTORYNAME: item.factoryName,
+          //         WORKDEPTNO: '', //车间
+          //         WORKDEPTNAME: '石灰车间',
+          //         NOMAL: 0, //一般隐患
+          //         BIGGER: 0, //较大隐患
+          //         MAJOR: 0, //重大隐患
+          //         TOTAL: 0, //总计
+          //         DEAL: 0, //已处理
+          //         NOTDEAL: 0 //未处理
+          //       }
+          //     ]
+          //     break
+          //   case '金润智能制造厂':
+          //     this.tableList = [
+          //       {
+          //         FACTORYNO: item.factoryNo, //生产厂
+          //         FACTORYCODE: item.FACTORYCODE,
+          //         FACTORYNAME: item.factoryName,
+          //         WORKDEPTNO: '', //车间
+          //         WORKDEPTNAME: '机加工车间',
+          //         NOMAL: 0, //一般隐患
+          //         BIGGER: 0, //较大隐患
+          //         MAJOR: 0, //重大隐患
+          //         TOTAL: 0, //总计
+          //         DEAL: 0, //已处理
+          //         NOTDEAL: 0 //未处理
+          //       },
+          //       {
+          //         FACTORYNO: item.factoryNo, //生产厂
+          //         FACTORYCODE: item.FACTORYCODE,
+          //         FACTORYNAME: item.factoryName,
+          //         WORKDEPTNO: '', //车间
+          //         WORKDEPTNAME: '后道工序车间',
+          //         NOMAL: 0, //一般隐患
+          //         BIGGER: 0, //较大隐患
+          //         MAJOR: 0, //重大隐患
+          //         TOTAL: 0, //总计
+          //         DEAL: 0, //已处理
+          //         NOTDEAL: 0 //未处理
+          //       }
+          //     ]
+          //     break
+          // }
+        }
+      })
+      Promise.all([this.queryWorkDept(this.formTime.factoryCode, '1')]).then(
+        () => {
+          this.queryAll()
+          this.queryNotDeal()
+          this.queryDangerInfo()
+          this.queryAllDangerSource()
+          this.queryAllDangerProportion()
+        }
       )
+
+      // Promise.all([this.findSelect()]).then(() => {
+      //   this.queryAll()
+      //   this.queryNotDeal()
+      //   this.queryDangerInfo()
+      //   this.queryAllDangerSource()
+      //   this.queryAllDangerProportion()
+      // })
     },
-    clickEchartsBusiness(params) {
-      console.log('点击了隐患柱状图', params)
-    },
-    selectWorkDept(val) {
-      console.log('选择了车间', val)
-    },
-    clickEchartsAuto(params) {
-      console.log('点击了采集比例图', params)
-    },
-    clickFaultAndDanger(type) {
-      this.faultDangerType = type
-    },
-    clickEchartsRisk(params) {
-      console.log('点击了隐患故障分布图', params)
-    },
-    clickLegendSelectChanged(params) {
-      console.log('图例选择变化', params)
-    },
-    clickDetail(row) {
-      this.dialogVisible = true
-      console.log('查看隐患详情', row)
-    },
+    /*----分页-----*/
     pageSizeChange(val) {
       this.dangerSearchForm.pageSize = val
-      console.log('每页条数变更为', val)
+      this.queryDangerInfo()
     },
     currentPageChange(val) {
       this.dangerSearchForm.pageIndex = val
-      console.log('当前页码变更为', val)
+      this.queryDangerInfo()
     },
-    handleClose() {
-      this.dialogVisible = false
+    handleClose: done => {
+      done()
+    },
+    columnClick(h, { column, $index }) {
+      return h('el-button', {
+        props: {
+          size: 'mini',
+          type: 'text'
+        },
+        on: {
+          click: _ => {
+            this.projectTypeClick(column.property)
+          }
+        },
+        domProps: {
+          innerHTML: column.label
+        }
+      })
+    },
+    //表头跳转
+    projectTypeClick(val) {
+      this.$router.push({
+        name: 'EquipDangerManage-InformatmManage-historyRiskInformation',
+        query: {
+          type: val,
+          beginDate: this.formTime.beginDate,
+          endDate: this.formTime.endDate
+        }
+      })
+    },
+    //车间跳转
+    departClick(value, type) {
+      this.$router.push({
+        name: 'EquipDangerManage-InformatmManage-historyRiskInformation',
+        query: {
+          factoryNo: this.factoryNo,
+          factoryName: this.factoryName,
+          workDeptNo: value.WORKDEPTNO,
+          workDeptName: value.WORKDEPTNAME,
+          type: type,
+          beginDate: this.formTime.beginDate,
+          endDate: this.formTime.endDate
+        }
+      })
+    },
+    //隐患列表点击查看详情
+    clickDetail(row) {
+      console.log(row)
+      this.dangerDesc = row.dangerDesc
+      this.emergencyResponse = row.emergencyResponse
+      this.hndlType = row.hndlType
+      // {"dangerNo":"隐患编号"}
+      let obj = {
+        dangerNo: row.dangerNo
+      }
+      this.queryHandleRecord(obj)
+      this.dialogVisible = true
+    },
+    //目前未处理隐患柱状图
+    clickEchartsBusiness(params) {
+      console.log('params', params)
+      let workDeptNo = ''
+      let workDeptName = ''
+      // let factoryNo = ''
+      let fangerGrade = ''
+      // const fl = this.factoryList.find(item => item.name === params.data.name)
+      // if (fl) factoryNo = fl.id
+      const fgl = this.fangerGradeList.find(
+        item => item.name === params.data.seriesName
+      )
+      if (fgl) fangerGrade = fgl.id
+      const nwdl = this.newWorkDeptList.find(
+        item => item.name === params.data.name
+      )
+      if (nwdl) {
+        workDeptNo = nwdl.id
+        workDeptName = nwdl.name
+      }
+      console.log(nwdl)
+      if (params.data.name !== '') {
+        this.$router.push({
+          name: 'EquipDangerManage-InformatmManage-historyRiskInformation',
+          query: {
+            type: 'NOTDEAL',
+            factoryNo: this.factoryNo,
+            factoryName: this.factoryName,
+            workDeptNo: workDeptNo,
+            workDeptName: workDeptName,
+            fangerGrade: fangerGrade,
+            beginDate: this.formTime.beginDate,
+            endDate: this.formTime.endDate
+          }
+        })
+      }
+    },
+    //自动、人工数据
+    clickEchartsAuto(params) {
+      console.log('params', params)
+      if (params.data.name !== '') {
+        this.$router.push({
+          name: 'EquipDangerManage-InformatmManage-historyRiskInformation',
+          query: {
+            type: 'NO',
+            beginDate: this.formTime.beginDate,
+            endDate: this.formTime.endDate
+          }
+        })
+      }
+    },
+    //绩效分评价
+    clickEchartsScore(val) {
+      if (val.data.name !== '') {
+        this.$router.push({
+          name: 'EquipDangerManage-InformatmManage-historyRiskInformation',
+          query: {
+            type: 'NO',
+            beginDate: this.formTime.beginDate,
+            endDate: this.formTime.endDate
+          }
+        })
+      }
+    },
+    //点击故障隐患图例
+    clickFaultAndDanger(type) {
+      if (type === '1') {
+        //故障1
+        if (this.faultDangerType === '0') {
+          //全不选->选故障
+          this.faultDangerType = '1'
+        } else if (this.faultDangerType === '1') {
+          //仅故障->全不选
+          this.faultDangerType = '0'
+        } else if (this.faultDangerType === '2') {
+          //仅隐患->全选
+          this.faultDangerType = '3'
+        } else if (this.faultDangerType === '3') {
+          //全选->仅隐患
+          this.faultDangerType = '2'
+        }
+      } else if (type === '2') {
+        //隐患2
+        if (this.faultDangerType === '0') {
+          //全不选->选隐患
+          this.faultDangerType = '2'
+        } else if (this.faultDangerType === '1') {
+          //仅故障->全选
+          this.faultDangerType = '3'
+        } else if (this.faultDangerType === '2') {
+          //仅隐患->全不选
+          this.faultDangerType = '0'
+        } else if (this.faultDangerType === '3') {
+          //全选->仅故障
+          this.faultDangerType = '1'
+        }
+      }
+    },
+    //隐患构成
+    clickEchartsRisk(params) {
+      console.log('故障隐患', params)
+      if (params.data.name === '故障') {
+        this.$router.push({
+          name: 'EquipDangerManage-InformatmManage-historyFaultInformation',
+          query: {
+            type: 'NO',
+            beginDate: this.formTime.beginDate,
+            endDate: this.formTime.endDate
+            // factoryNo: this.summaryForm.factoryNo
+          }
+        })
+      } else if (params.data.name === '隐患') {
+        let workDeptName =
+          params.echart._model.option.graphic[0].elements[0].style.text
+        let workDeptNo = ''
+        const nwdl = this.newWorkDeptList.find(
+          item => item.name === workDeptName
+        )
+        if (nwdl) {
+          workDeptNo = nwdl.id
+          workDeptName = nwdl.name
+        }
+        this.$router.push({
+          name: 'EquipDangerManage-InformatmManage-historyRiskInformation',
+          query: {
+            type: 'NO',
+            factoryNo: this.factoryNo,
+            factoryName: this.factoryName,
+            workDeptNo: workDeptNo,
+            workDeptName: workDeptName,
+            beginDate: this.formTime.beginDate,
+            endDate: this.formTime.endDate
+          }
+        })
+      }
+    },
+    //监听点击图例事件
+    clickLegendSelectChanged(val) {
+      this.dangerAndFailureOptionList.forEach(item => {
+        item.legend = {
+          selected: val.data.selected
+        }
+      })
+    },
+    //车间
+    selectWorkDept(value) {
+      const wdl = this.newWorkDeptList2.find(item => item.id === value)
+      if (wdl) {
+        this.workDeptForm.workDeptName = wdl.name
+      }
+    },
+    /*----------接口-----------*/
+    //查询车间
+    async queryWorkDept(orgCode, type) {
+      const res = await post(queryWorkDeptInfo, { orgCode: orgCode })
+      if (res.success) {
+        let tempList = []
+        res.data.forEach(item => {
+          tempList.push({
+            id: item.orgCode,
+            name: item.orgAllName
+          })
+        })
+        if (type === '1' || type === '3') {
+          this.newWorkDeptList = []
+          this.newWorkDeptList.push(...tempList)
+          this.newWorkDeptList2 = this.newWorkDeptList
+          this.newWorkDeptList2.unshift({
+            id: '',
+            name: '车间'
+          })
+          if (type === '3') {
+            const nwdl = this.newWorkDeptList.find(
+              item => item.id === this.userInfo.workDeptNo
+            )
+            if (nwdl) {
+              this.formTime.workDeptNo = nwdl.id
+              this.formTime.workDeptName = nwdl.name
+            }
+          }
+          this.newWorkDeptList.forEach(item => {
+            const tl = this.tableList.find(
+              cell => cell.WORKDEPTNAME === item.name
+            )
+            if (tl) {
+              tl.WORKDEPTNO = item.id
+            }
+          })
+        }
+      }
+    },
+    //下拉框获取数据
+    async findSelect() {
+      // 查询单位数据
+      const { data: res } = await post(findAllByTableId, {
+        tableId: 'FACTORY',
+        col: '3',
+        data: '3'
+      })
+      this.factoryList = []
+      res.forEach(item => {
+        this.factoryList.push({
+          id: item.oneCol,
+          name: item.twoCol
+        })
+      })
+      this.factoryList.forEach(item => {
+        if (item.name === this.factoryName) {
+          this.formTime.factoryNo = item.id
+          this.dangerSearchForm.factoryNo = item.id
+        }
+      })
+    },
+    //查询处置过程
+    async queryHandleRecord(obj) {
+      const res = await post(findAllDangerHandleRecord, obj)
+      console.log(res)
+      if (res.success) {
+        //处置过程跟踪
+        this.workContentList = res.data
+      }
+    },
+    //查询隐患跟踪统计表
+    async queryAll() {
+      const res = await post(queryAllDangerInfoByFactory, this.formTime)
+      console.log(res)
+      if (res.success) {
+        let totalNormal = 0
+        let totalBigger = 0
+        let totalMajor = 0
+        let totalDeal = 0
+        let totalNotDeal = 0
+        let totalTotal = 0
+        // this.tableList.forEach(item => {
+        //   const info = res.data.find(
+        //     cell => cell.WORKDEPTNO === item.WORKDEPTNO
+        //   )
+        //   if (info) {
+        //     item.NOMAL = info.NOMAL === null ? 0 : info.NOMAL
+        //     item.BIGGER = info.BIGGER === null ? 0 : info.BIGGER
+        //     item.MAJOR = info.MAJOR === null ? 0 : info.MAJOR
+        //     item.DEAL = info.DEAL === null ? 0 : info.DEAL
+        //     item.NOTDEAL = info.NOTDEAL === null ? 0 : info.NOTDEAL
+        //     item.TOTAL = info.TOTAL === null ? 0 : info.TOTAL
+        //     totalNormal += parseInt(item.NOMAL)
+        //     totalBigger += parseInt(item.BIGGER)
+        //     totalMajor += parseInt(item.MAJOR)
+        //     totalDeal += parseInt(item.DEAL)
+        //     totalNotDeal += parseInt(item.NOTDEAL)
+        //     totalTotal += parseInt(item.TOTAL)
+        //   }
+        // })
+        res.data.forEach((item, index) => {
+          if (item.NOMAL === null) item.NOMAL = 0
+          if (item.BIGGER === null) item.BIGGER = 0
+          if (item.MAJOR === null) item.MAJOR = 0
+          if (item.DEAL === null) item.DEAL = 0
+          if (item.NOTDEAL === null) item.NOTDEAL = 0
+          if (item.TOTAL === null) item.TOTAL = 0
+          totalNormal += parseInt(item.NOMAL)
+          totalBigger += parseInt(item.BIGGER)
+          totalMajor += parseInt(item.MAJOR)
+          totalDeal += parseInt(item.DEAL)
+          totalNotDeal += parseInt(item.NOTDEAL)
+          totalTotal += parseInt(item.TOTAL)
+          //判断车间名称
+          const fl = this.newWorkDeptList.find(
+            cell => cell.id === item.WORKDEPTNO
+          )
+          if (fl) {
+            item.WORKDEPTNAME = fl.name
+          } else {
+            if (item.WORKDEPTNO === '2') {
+              item.WORKDEPTNAME = '转炉车间'
+            } else if (item.WORKDEPTNO === '11') {
+              item.WORKDEPTNAME = '机加工车间'
+            } else if (item.WORKDEPTNO === '12') {
+              item.WORKDEPTNAME = '后道工序车间'
+            } else {
+              item.WORKDEPTNAME = item.WORKDEPTNO
+            }
+          }
+          item.id = index
+          item.FACTORYNAME = this.factoryName
+          item.FACTORYNO = this.factoryNo
+          // const tl = this.tableList.find(
+          //   cell => cell.WORKDEPTNO === item.WORKDEPTNO
+          // )
+          // if (tl) {
+          //   tl.NOMAL = item.NOMAL
+          //   tl.BIGGER = item.BIGGER
+          //   tl.MAJOR = item.MAJOR
+          //   tl.DEAL = item.DEAL
+          //   tl.NOTDEAL = item.NOTDEAL
+          //   tl.TOTAL = item.TOTAL
+          // }
+        })
+        this.tableList = res.data
+        this.tableList.push({
+          id: '99',
+          FACTORYNAME: '生产厂',
+          FACTORYNO: '3', //生产厂
+          WORKDEPTNO: '', //车间
+          WORKDEPTNAME: '合计',
+          NOMAL: totalNormal, //一般隐患
+          BIGGER: totalBigger, //较大隐患
+          MAJOR: totalMajor, //重大隐患
+          TOTAL: totalTotal, //总计
+          DEAL: totalDeal, //已处理
+          NOTDEAL: totalNotDeal //未处理
+        })
+      }
+    },
+    //查询未处理隐患数据
+    async queryNotDeal() {
+      const res = await post(queryNotDealDangerInfoByFactory, this.formTime)
+      console.log(res)
+      if (res.success) {
+        let noDealList = []
+        let totalNormal = 0
+        let totalBigger = 0
+        let totalMajor = 0
+        console.log('newWorkList', this.newWorkDeptList)
+        res.data.forEach(item => {
+          item.NOMAL = item.NOMAL === null ? 0 : item.NOMAL
+          item.BIGGER = item.BIGGER === null ? 0 : item.BIGGER
+          item.MAJOR = item.MAJOR === null ? 0 : item.MAJOR
+          totalNormal += parseInt(item.NOMAL)
+          totalBigger += parseInt(item.BIGGER)
+          totalMajor += parseInt(item.MAJOR)
+          const fl = this.newWorkDeptList.find(
+            cell => cell.id === item.WORKDEPTNO
+          )
+          if (fl) {
+            item.WORKDEPTNAME = fl.name
+            item.WORKDEPTNO = fl.id
+          } else {
+            //TODO 仅用于车间组织结构没有转炉车间、机加工车间、后道工序车间，临时处理
+            if (item.WORKDEPTNO === '2') {
+              item.WORKDEPTNAME = '转炉车间'
+            } else if (item.WORKDEPTNO === '11') {
+              item.WORKDEPTNAME = '机加工车间'
+            } else if (item.WORKDEPTNO === '12') {
+              item.WORKDEPTNAME = '后道工序车间'
+            } else {
+              item.WORKDEPTNAME = item.WORKDEPTNO
+            }
+          }
+        })
+        noDealList = res.data
+        // // 目前未处理隐患数据-生产厂
+        let xAxisData = []
+        let seriesDataNormal = []
+        let seriesDataBigger = []
+        let seriesDataMajor = []
+        noDealList.forEach(item => {
+          xAxisData.push(item.WORKDEPTNAME)
+          seriesDataNormal.push(item.NOMAL)
+          seriesDataBigger.push(item.BIGGER)
+          seriesDataMajor.push(item.MAJOR)
+        })
+        let xAxis1 = [
+          {
+            type: 'category',
+            axisLine: {
+              lineStyle: {
+                color: '#d4d7da'
+              }
+            },
+            splitLine: {
+              show: true,
+              lineStyle: { color: '#d4d7da' }
+            },
+            data: xAxisData
+          }
+        ]
+        let series1 = [
+          {
+            name: '一般隐患',
+            type: 'bar',
+            barGap: 0.22,
+            barWidth: 13,
+            data: seriesDataNormal,
+            color: '#61A4E4',
+            //柱状图显示上方数字
+            label: {
+              normal: {
+                show: true,
+                position: 'top',
+                textStyle: {
+                  color: '#606266'
+                }
+              }
+            }
+          },
+          {
+            name: '较大隐患',
+            type: 'bar',
+            barGap: 0.22,
+            barWidth: 13,
+            data: seriesDataBigger,
+            color: '#FFA958',
+            label: {
+              normal: {
+                show: true,
+                position: 'top',
+                textStyle: {
+                  color: '#606266'
+                }
+              }
+            }
+          },
+          {
+            name: '重大隐患',
+            type: 'bar',
+            barWidth: 13,
+            barGap: 0.22,
+            data: seriesDataMajor,
+            color: '#F56C6C',
+            label: {
+              normal: {
+                show: true,
+                position: 'top',
+                textStyle: {
+                  color: '#606266'
+                }
+              }
+            }
+          }
+        ]
+        this.lineOption1.xAxis = xAxis1
+        this.lineOption1.series = series1
+        console.log(this.lineOption1)
+      }
+    },
+    // 查询故障/隐患构成分布
+    async queryAllDangerSource() {
+      const res = await post(queryAllDangerSourceInfoByFactory, this.formTime)
+      console.log(res)
+      this.dangerAndFailureList = []
+      if (res.success) {
+        let totalDANGERNUM = 0
+        let totalFAILURENUM = 0
+        res.data.forEach(item => {
+          item.WORKDEPTNO = item.WORK_DEPT_NO
+          item.DANGERNUM = item.DANGERNUM === null ? 0 : item.DANGERNUM
+          item.FAILURENUM = item.FAILURENUM === null ? 0 : item.FAILURENUM
+          let totalPer = item.DANGERNUM + item.FAILURENUM
+          item.DANGERNUMPer =
+            totalPer === 0 ? 0 : ((item.DANGERNUM * 100) / totalPer).toFixed(2)
+          item.FAILURENUMPer =
+            totalPer === 0 ? 0 : ((item.FAILURENUM * 100) / totalPer).toFixed(2)
+          totalDANGERNUM += parseInt(item.DANGERNUM)
+          totalFAILURENUM += parseInt(item.FAILURENUM)
+          const fl = this.factoryList.find(cell => cell.id === item.FACTORY_NO)
+          if (fl) {
+            item.FACTORYNAME = fl.name
+            item.FACTORYNO = fl.id
+          }
+          const wdl = this.newWorkDeptList.find(
+            cell => cell.id === item.WORK_DEPT_NO
+          )
+          if (wdl) {
+            item.WORKDEPTNAME = wdl.name
+            item.WORKDEPTNO = wdl.id
+          } else {
+            //TODO 仅用于车间组织结构没有转炉车间、机加工车间、后道工序车间，临时处理
+            if (item.WORK_DEPT_NO === '2') {
+              item.WORKDEPTNAME = '转炉车间'
+            } else if (item.WORK_DEPT_NO === '11') {
+              item.WORKDEPTNAME = '机加工车间'
+            } else if (item.WORK_DEPT_NO === '12') {
+              item.WORKDEPTNAME = '后道工序车间'
+            } else {
+              item.WORKDEPTNAME = item.WORK_DEPT_NO
+            }
+          }
+        })
+        this.dangerAndFailureList = res.data
+        // this.dangerAndFailureList.push({
+        //   id: '7',
+        //   WORKDEPTNAME: '合计',
+        //   WORKDEPTNO: '3', //生产厂
+        //   DANGERNUM: totalDANGERNUM, //隐患
+        //   FAILURENUM: totalFAILURENUM //故障
+        // })
+
+        this.dangerAndFailureOptionList = []
+        this.dangerAndFailureList.forEach((item, index) => {
+          let option = {
+            tooltip: {
+              trigger: 'item',
+              formatter: '{b}:\n{c}条\n{d}%' //模板变量有 {a}、{b}、{c}、{d}，分别表示系列名，数据名，数据值，百分比。
+            },
+            legend: {
+              top: '5%',
+              left: 'right',
+              show: false
+            },
+            graphic: [
+              {
+                type: 'text',
+                left: 'center',
+                top: 'center',
+                style: {
+                  text: item.WORKDEPTNAME,
+                  textAlign: 'center',
+                  fill: '#000000',
+                  width: 30,
+                  height: 30,
+                  fontSize: 12,
+                  fontFamily: 'Microsoft YaHei'
+                }
+              }
+            ],
+            series: [
+              {
+                type: 'pie',
+                radius: ['50%', '70%'],
+                center: ['50%', '50%'],
+                avoidLabelOverlap: false,
+                labelLine: {
+                  length: 10,
+                  length2: 5
+                },
+                label: {
+                  show: false,
+                  formatter: '{a|{b}}{abg|}\n{hr|}\n  {b|{c}条}  {per|{d}%}  ',
+                  backgroundColor: '#F6F8FC',
+                  borderColor: '#8C8D8E',
+                  borderWidth: 1,
+                  borderRadius: 4,
+                  rich: {
+                    a: {
+                      color: '#6E7079',
+                      lineHeight: 22,
+                      align: 'center'
+                    },
+                    hr: {
+                      borderColor: '#8C8D8E',
+                      width: '100%',
+                      borderWidth: 1,
+                      height: 0
+                    },
+                    b: {
+                      color: '#4C5058',
+                      fontSize: 14,
+                      fontWeight: 'bold',
+                      lineHeight: 33
+                    },
+                    per: {
+                      color: '#fff',
+                      backgroundColor: '#4C5058',
+                      padding: [3, 4],
+                      borderRadius: 4
+                    }
+                  }
+                },
+                emphasis: {
+                  label: {
+                    show: false,
+                    fontSize: '40',
+                    fontWeight: 'bold'
+                  }
+                },
+                color: ['#61A4E4', '#FFA958'],
+                data: [
+                  {
+                    value: item.DANGERNUM,
+                    name: '隐患',
+                    color: '#61A4E4',
+                    per: item.DANGERNUMPer
+                  },
+                  {
+                    value: item.FAILURENUM,
+                    name: '故障',
+                    color: '#FFA958',
+                    per: item.FAILURENUMPer
+                  }
+                ]
+              }
+            ]
+          }
+          // if (
+          //   this.dangerAndFailureList.length < 4 &&
+          //   index === this.dangerAndFailureList.length - 1
+          // ) {
+          //   option.legend.show = true
+          // } else if (index === 3) {
+          //   option.legend.show = true
+          // }
+          this.dangerAndFailureOptionList.push(option)
+        })
+      }
+    },
+    // 查询自动、人工采集比例占比
+    async queryAllDangerProportion() {
+      const res = await post(
+        queryAllDangerProportionInfoByFactory,
+        this.formTime
+      )
+      console.log(res)
+      if (res.success) {
+        this.manualAndAutoList = []
+        let totalARTIFICIALNUM = 0
+        let totalSYSTEMNUM = 0
+        res.data.forEach(item => {
+          if (item.ARTIFICIALNUM === null) item.ARTIFICIALNUM = 0
+          if (item.SYSTEMNUM === null) item.SYSTEMNUM = 0
+          totalARTIFICIALNUM += parseInt(item.ARTIFICIALNUM)
+          totalSYSTEMNUM += parseInt(item.SYSTEMNUM)
+          const nwdl = this.newWorkDeptList.find(
+            cell => cell.id === item.WORK_DEPT_NO
+          )
+          if (nwdl) {
+            item.workDeptNo = nwdl.id
+            item.workDeptName = nwdl.name
+          }
+        })
+        this.manualAndAutoList = res.data
+        this.manualAndAutoList.push({
+          ARTIFICIALNUM: totalARTIFICIALNUM,
+          SYSTEMNUM: totalSYSTEMNUM,
+          WORK_DEPT_NO: '',
+          workDeptNo: '',
+          workDeptName: '车间'
+        })
+        let SYSTEMNUM = res.data.length > 0 ? res.data[0].SYSTEMNUM : 0
+        let ARTIFICIALNUM = res.data.length > 0 ? res.data[0].ARTIFICIALNUM : 0
+        this.lineOption2.series = [
+          {
+            type: 'pie',
+            radius: '90%',
+            //设置白色间隙
+            itemStyle: {
+              borderWidth: 2,
+              borderColor: '#fff'
+            },
+            //文字显示在饼状图内
+            label: {
+              formatter: '{b}\n{c}条\n{d}%',
+              position: 'inside'
+            },
+            data: [
+              { value: totalSYSTEMNUM, name: '自动采集' },
+              { value: totalARTIFICIALNUM, name: '人工采集' }
+            ],
+            emphasis: {
+              itemStyle: {
+                shadowBlur: 10,
+                shadowOffsetX: 0,
+                shadowColor: 'rgba(0, 0, 0, 0.5)'
+              }
+            }
+          }
+        ]
+      }
+    },
+    //查询隐患明细
+    async queryDangerInfo() {
+      this.dangerSearchForm.beginDate = this.formTime.beginDate
+      this.dangerSearchForm.endDate = this.formTime.endDate
+      const res = await post(findAllDangerInfoList, this.dangerSearchForm)
+      if (res.success) {
+        res.data.tlist.forEach(item => {
+          //产线
+          const fl = this.factoryList.find(cell => cell.id === item.factoryNo)
+          if (fl) item.factoryName = fl.name
+        })
+        this.tableDataRisk = res.data.tlist
+        this.total = res.data.total
+      }
     }
   }
 }
 </script>
 
 <style scoped lang="less">
-.contentBox {
-  padding: 15px;
-}
 //时间组件样式
 /deep/.el-form.el-form--inline {
   height: 28px;
@@ -1564,7 +2351,7 @@ export default {
 .textStyle {
   text-decoration: underline;
   cursor: pointer;
-  color: #5db362 !important;
+  color: #409eff !important;
 }
 .textStyleLast {
   color: #606266;
@@ -1598,30 +2385,5 @@ export default {
 //未激活状态图例
 .fault_and_danger_not_active {
   background-color: #ccd0d9;
-}
-//时间组件背景色统一变灰
-/deep/.el-date-editor .el-range-input {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  border: none;
-  outline: 0;
-  display: inline-block;
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  width: 39%;
-  text-align: center;
-  font-size: 14px;
-  color: #2e382e;
-  background-color: #f5f5fa;
-}
-/deep/.el-dialog {
-  padding: 0;
-}
-/* 分页选中项样式修改 */
-::v-deep .el-pager li.active {
-  color: #35a03b !important; /* 绿色文字 */
-  //border-color: #42b983 !important; /* 绿色边框 */
 }
 </style>

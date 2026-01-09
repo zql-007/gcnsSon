@@ -1,13 +1,10 @@
 <template>
-  <div
-    class="contentBox">
+  <div class="contentBox">
     <el-form
       :inline="true"
       :model="form"
       class="demo-form-inline"
     >
-      <!-- 移除事业部和产线选择框 -->
-
       <el-form-item label="责任部门">
         <el-select
           v-model="form.dutyDepartmentId"
@@ -83,7 +80,6 @@
           start-placeholder="开始日期"
           end-placeholder="结束日期"
           placeholder="选择日期"
-          style="width: 350px"
           @change="setMeasureTime"
         >
         </el-date-picker>
@@ -128,6 +124,12 @@
         @selection-change="handleSelectionChangeOther"
         @filter-change="filterChange"
       >
+        <!-- <el-table-column
+          for
+          align="center"
+          type="selection"
+          width="55">
+        </el-table-column>-->
         <el-table-column
           :reserve-selection="true"
           align="center"
@@ -332,6 +334,10 @@
             >
               再次录入
             </el-button>
+            <!--            <el-button
+              size="mini"
+              type="primary"
+              @click="showHistory(scope.row)">历史记录</el-button>-->
           </template>
         </el-table-column>
       </el-table>
@@ -358,10 +364,11 @@
       class="dialogClose"
       @close="getFormTimeEcharts"
     >
+      <!--  报警趋势图-->
       <el-table
         ref="multipleTable1"
         :data="tableData1"
-        :header-cell-style="{background:'#e0f6e3'}"
+        :header-cell-style="{background:'#e2edf8'}"
         :fit="true"
         :row-key="getRowKey1"
         :cell-style="changeRed1"
@@ -411,18 +418,16 @@
         </el-table-column>
       </el-table>
 
-      <div style="margin-top: 15px">
-        <tasily-echarts
-          :tooltip="lineOptionHis.tooltip"
-          :grid="lineOptionHis.grid"
-          :legend="lineOptionHis.legend"
-          :x-axis="lineOptionHis.xAxis"
-          :y-axis="lineOptionHis.yAxis"
-          :series="lineOptionHis.series"
-          :data-zoom="lineOptionHis.dataZoom"
-          :_height="'305px'"
-        />
-      </div>
+      <tasily-echarts
+        :tooltip="lineOptionHis.tooltip"
+        :grid="lineOptionHis.grid"
+        :legend="lineOptionHis.legend"
+        :x-axis="lineOptionHis.xAxis"
+        :y-axis="lineOptionHis.yAxis"
+        :series="lineOptionHis.series"
+        :data-zoom="lineOptionHis.dataZoom"
+        :_height="'305px'"
+      />
     </el-dialog>
     <!--历史记录弹窗-->
     <el-dialog
@@ -431,6 +436,15 @@
       title="历史记录"
       width="90%"
     >
+      <!--      <tasily-echarts
+        :tooltip="lineOptionHistory.tooltip"
+        :grid="lineOptionHistory.grid"
+        :legend="lineOptionHistory.legend"
+        :x-axis="lineOptionHistory.xAxis"
+        :y-axis="lineOptionHistory.yAxis"
+        :series="lineOptionHistory.series"
+        :data-zoom="lineOptionHistory.dataZoom"
+        :_height="'305px'"/>-->
       <el-table
         ref="multipleTable"
         :data="dialogTableData"
@@ -520,31 +534,31 @@
 </template>
 
 <script>
-// import * as echarts from 'echarts'
-// import { get, post } from '@/lib/Util'
-// import { date2md } from '@/utils/dateUtil'
+import * as echarts from 'echarts'
+import { get, post } from '@/lib/Util'
+import { date2md } from '@/utils/dateUtil'
 import moment from 'moment'
 import tasilyEcharts from '@/components/TasilyEcharts'
-// import {
-//   getBusinessUnitInfo,
-//   getProductionLineInfo,
-//   getProductionLineAreaInfo,
-//   getDutyDepartmentInfo,
-//   getDeviceInfo,
-//   findAreaByLineID,
-//   findDeviceByAreaID,
-//   findManagementItem,
-//   getMeasureTypeInfo,
-//   findDeviceByDepartID,
-//   iomPrecisionManagementController_trendAnalysis,
-//   exportCustomMItemData,
-//   exportCustomMItemData1,
-//   exportCustomMItemDataWithLine,
-//   findHistoryByStandardID,
-//   addNewItem,
-//   getProductionLineByDevice
-// } from '@/lib/ApiURL01'
-// import axios from 'axios'
+import {
+  getBusinessUnitInfo,
+  getProductionLineInfo,
+  getProductionLineAreaInfo,
+  getDutyDepartmentInfo,
+  getDeviceInfo,
+  findAreaByLineID,
+  findDeviceByAreaID,
+  findManagementItem,
+  getMeasureTypeInfo,
+  findDeviceByDepartID,
+  iomPrecisionManagementController_trendAnalysis,
+  exportCustomMItemData,
+  exportCustomMItemData1,
+  exportCustomMItemDataWithLine,
+  findHistoryByStandardID,
+  addNewItem,
+  getProductionLineByDevice
+} from '@/lib/EquipPrecisManage/ApiURL01'
+import axios from 'axios'
 export default {
   // layout: 'test',
   name: 'EquipPrecisManage-dataQuery',
@@ -553,8 +567,8 @@ export default {
   },
   data() {
     return {
-      userNo: this.$store.getters['user/getUserNo'] || 'user123',
-      userName: this.$store.getters['user/getUserName'] || '测试用户',
+      userNo: this.$store.getters['user/getUserNo'] || '',
+      userName: this.$store.getters['user/getUserName'] || '',
       /*---------历史记录---------*/
       dialogVisible: false,
       standardID: '', //历史记录传参参数
@@ -598,6 +612,9 @@ export default {
             type: 'value',
             axisLine: {
               show: false
+              /* lineStyle: {
+                  color: 'red'
+                }*/
             },
             splitLine: { lineStyle: { color: '#d4d7da' } }
           }
@@ -608,8 +625,43 @@ export default {
             data: [12, 16, 18, 10, 23, 33, 18, 12],
             smooth: true
           }
+          /*{
+            name: '换辊',
+            type: 'line',
+            data: [5, 6, 7, 8]
+          },
+          {
+            name: '设备故障',
+            type: 'line',
+            data: [9, 10, 11, 12]
+          },
+          {
+            name: '生产故障',
+            type: 'line',
+            data: [13, 14, 15, 16]
+          },
+          {
+            name: '轧机工作时间',
+            type: 'line',
+            data: [17, 18, 19, 20]
+          }*/
         ],
-        dataZoom: []
+        dataZoom: [
+          /*  {
+            show: true,
+            realtime: true,
+            start: 0,
+            end: 10,
+            zoomOnMouseWheel: false
+          },
+          {
+            type: 'inside',
+            realtime: true,
+            start: 0,
+            end: 10,
+            zoomOnMouseWheel: false
+          }*/
+        ]
       },
       tableHeadInfoHistory: [
         {
@@ -647,6 +699,7 @@ export default {
           parent: '测量类型',
           width: ''
         },
+        //measureValue
         {
           key: 'measureValue',
           parent: '测量数值',
@@ -761,6 +814,9 @@ export default {
             min: '',
             axisLine: {
               show: false
+              /* lineStyle: {
+                  color: 'red'
+                }*/
             },
             splitLine: { lineStyle: { color: '#d4d7da' } }
           }
@@ -789,6 +845,26 @@ export default {
               ]
             }
           }
+          /*{
+            name: '换辊',
+            type: 'line',
+            data: [5, 6, 7, 8]
+          },
+          {
+            name: '设备故障',
+            type: 'line',
+            data: [9, 10, 11, 12]
+          },
+          {
+            name: '生产故障',
+            type: 'line',
+            data: [13, 14, 15, 16]
+          },
+          {
+            name: '轧机工作时间',
+            type: 'line',
+            data: [17, 18, 19, 20]
+          }*/
         ],
         dataZoom: [
           {
@@ -806,6 +882,11 @@ export default {
             end: 100,
             zoomOnMouseWheel: true
           }
+          /*  {
+            type: 'inside',
+            orient: 'vertical',
+            zoomOnMouseWheel: true
+          }*/
         ]
       },
       loading: false,
@@ -840,6 +921,13 @@ export default {
       pageIndex: 1,
       total: 0,
 
+      /*      pagination: {
+        align: 'right',
+        currentPage: 1,
+        pageSizes: [10, 20, 30, 40],
+        pageSize: 10,
+        total: 0
+      } //分页查询*/
       selectCheckbox: [], //自定义导出接口参数names
       selectCheckboxCodes: [], //自定义导出接口参数codes
       nameCheckBox: '',
@@ -947,6 +1035,16 @@ export default {
       lineOptionHis: {
         tooltip: {
           trigger: 'axis',
+          // formatter(params) {
+          //   let str = ''
+          //   str += `<div>${params[0].name}</div>`
+          //   for (let i = 0; i < params.length; i += 1) {
+          //     str += `${params[i].marker} <span>${
+          //       params[i].seriesName
+          //     }</span> : <span>${params[i].data + '%'}</br>`
+          //   }
+          //   return str
+          // },
           axisPointer: {
             type: 'cross',
             label: { color: '#fff' },
@@ -987,7 +1085,10 @@ export default {
             type: 'value',
             alignTicks: true,
             splitNumber: 5,
+            // min: 0,
+            // max: 10,
             name: '标准值',
+            // axisLabel: { formatter: '{value}%' },
             axisLine: {
               show: false
             },
@@ -1015,6 +1116,7 @@ export default {
         dataZoom: [
           {
             type: 'inside',
+            // disabled: true,
             filterMode: 'none',
             start: 0,
             end: 100,
@@ -1029,16 +1131,11 @@ export default {
             bottom: 0
           }
         ]
-      },
-      // 模拟系统工具对象
-      comsys: {
-        tableRowIndex: (index, pageIndex, pageSize) => {
-          return (pageIndex - 1) * pageSize + index + 1
-        }
       }
     }
   },
   watch: {
+    // dialogVisibleAgain()
     dialogVisibleAgain(newData, oldData) {
       console.log('newData', newData)
       if (newData === false) {
@@ -1054,99 +1151,18 @@ export default {
     deep: true
   },
   created() {
-    // 生成模拟数据
-    this.generateMockData()
+    this.findProductionLineArea()
   },
   mounted() {
-    // 初始化表格数据
-    this.findAll()
+    /* this.findAll()*/
   },
   methods: {
-    // 生成模拟数据
-    generateMockData() {
-      // 模拟责任部门数据
-      this.departmentList = [
-        { id: '1', name: '维修部' },
-        { id: '2', name: '生产部' },
-        { id: '3', name: '质检部' },
-        { id: '4', name: '设备部' }
-      ]
-
-      // 模拟设备数据
-      this.deviceList = [
-        { id: '1', name: '轧机A1' },
-        { id: '2', name: '轧机A2' },
-        { id: '3', name: '磨床B1' },
-        { id: '4', name: '车床C1' },
-        { id: '5', name: '铣床D1' }
-      ]
-    },
-
-    // 生成表格模拟数据
-    generateTableData() {
-      const data = []
-      const departments = ['维修部', '生产部', '质检部', '设备部']
-      const devices = ['轧机A1', '轧机A2', '磨床B1', '车床C1', '铣床D1']
-      const items = [
-        '厚度检测',
-        '平行度检测',
-        '垂直度检测',
-        '硬度检测',
-        '表面粗糙度'
-      ]
-      const measureTypes = ['人工测量', '自动检测', '激光测量', '超声波检测']
-      const units = ['mm', '°', 'μm', 'N']
-
-      for (let i = 0; i < this.pageSize; i++) {
-        const id = (this.pageIndex - 1) * this.pageSize + i + 1
-        const isPass = Math.random() > 0.3 ? '1' : '0'
-        const isRepeat = Math.random() > 0.8 ? '1' : '0'
-        const standardValue = (Math.random() * 100).toFixed(2)
-        const measureValue = (
-          parseFloat(standardValue) +
-          (Math.random() * 10 - 5)
-        ).toFixed(2)
-
-        data.push({
-          id: id.toString(),
-          productionLineName: '板材车间',
-          productionLineAreaName: `区域${Math.floor(Math.random() * 4) + 1}`,
-          dutyDepartmentName:
-            departments[Math.floor(Math.random() * departments.length)],
-          deviceName: devices[Math.floor(Math.random() * devices.length)],
-          itemName: items[Math.floor(Math.random() * items.length)],
-          standardValue: standardValue,
-          standardValueNeg: (parseFloat(standardValue) - 5).toFixed(2),
-          standardValuePos: (parseFloat(standardValue) + 5).toFixed(2),
-          sunitName: units[Math.floor(Math.random() * units.length)],
-          measureType:
-            measureTypes[Math.floor(Math.random() * measureTypes.length)],
-          measureTime: moment()
-            .subtract(Math.floor(Math.random() * 30), 'days')
-            .format('YYYY-MM-DD HH:mm:ss'),
-          checkCycle: `${Math.floor(Math.random() * 30) + 1}天`,
-          measureValue: measureValue,
-          isPass: isPass,
-          cycleStartTime: moment()
-            .subtract(30, 'days')
-            .format('YYYY-MM-DD'),
-          cycleEndTime: moment().format('YYYY-MM-DD'),
-          personLiableName: `责任人${Math.floor(Math.random() * 10) + 1}`,
-          isBeyond: Math.random() > 0.9 ? '1' : '0',
-          remark: Math.random() > 0.7 ? '正常' : '',
-          isRepeatItem: isRepeat,
-          standardID: `STD${id}`
-        })
-      }
-
-      return data
-    },
-
     /*根据合格与否改变行颜色*/
     changeRed({ row }) {
       if (row.isPass == '0') {
         return {
           backgroundColor: '#fef0f0'
+          // 这个return的就是样式 可以是color 也可以是backgroundColor
         }
       }
       if (row.isRepeatItem == '1') {
@@ -1160,20 +1176,25 @@ export default {
       console.log('再次录入row', row)
       this.dialogVisibleAgain = true
       this.formInlineAgain.id = row.id
-      this.formInlineAgain.standardValue = row.standardValue
       this.formInlineAgain.measurer = this.userName + '-' + this.userNo
     },
     againConfirm() {
-      // 模拟提交成功
-      this.$message.success('录入成功！')
-      this.dialogVisibleAgain = false
-      this.formInlineAgain = {
-        measureValue: '',
-        standardValue: '',
-        remark: '',
-        id: '',
-        measurer: ''
-      }
+      post(addNewItem, this.formInlineAgain).then(res => {
+        if (res.success) {
+          this.$message.success('录入成功！')
+          this.dialogVisibleAgain = false
+          this.formInlineAgain = {
+            measureValue: '',
+            standardValue: '',
+            remark: '',
+            id: '',
+            measurer: ''
+          }
+        } else {
+          this.$message.error('录入失败！')
+          this.dialogVisibleAgain = true
+        }
+      })
     },
     /*历史记录*/
     showHistory(row) {
@@ -1181,28 +1202,32 @@ export default {
       console.log('历史记录row:', row)
 
       this.standardID = row.standardID
-      // 生成模拟历史数据
-      this.dialogTableData = this.generateHistoryData(row)
-    },
-    /*生成历史记录模拟数据*/
-    generateHistoryData(row) {
-      const data = []
-      for (let i = 0; i < 10; i++) {
-        data.push({
-          ...row,
-          id: `${row.id}_${i}`,
-          measureTime: moment()
-            .subtract(i + 1, 'weeks')
-            .format('YYYY-MM-DD HH:mm:ss'),
-          measureValue: (
-            parseFloat(row.standardValue) +
-            (Math.random() * 10 - 5)
-          ).toFixed(2),
-          isPass: Math.random() > 0.3 ? '1' : '0',
-          totalScore: Math.floor(Math.random() * 20) + 80
-        })
-      }
-      return data
+      post(findHistoryByStandardID, {
+        standardID: this.standardID
+      }).then(res => {
+        if (res && res.success) {
+          let xData = []
+          let yData = []
+          for (let i = 0; i < res.data.length; i++) {
+            if (res.data[i].measureTime) {
+              res.data[i].measureTime = moment(res.data[i].measureTime).format(
+                'YYYY-MM-DD HH:mm:ss'
+              )
+            }
+            xData.push(res.data[i].measureTime)
+            yData.push(res.data[i].totalScore)
+          }
+          this.dialogTableData = res.data
+          this.lineOptionHistory.xAxis[0].data = xData
+          this.lineOptionHistory.series[0].data = yData
+          // this.paginationDia.total = res.data.totalElements
+        } else {
+          this.$message.error('未查询到历史数据！')
+          this.dialogTableData = []
+          this.lineOptionHistory.xAxis[0].data = []
+          this.lineOptionHistory.series[0].data = []
+        }
+      })
     },
     /*关闭历史弹窗*/
     handleClose() {
@@ -1218,155 +1243,746 @@ export default {
         measurer: ''
       }
     },
-    //趋势图表弹窗
+    //趋势图表弹窗:render-header="renderHeader"
     async tendencyClick(val) {
       this.dialogVisibleAlarm = true
       this.dialogDataAalarm = val
       console.log('val-this.dialogDataAalarm：', val)
-      this.generateTrendData(val)
+      await this.findTrend(val.standardValue)
     },
-    // 生成趋势图模拟数据
-    generateTrendData(val) {
-      const days = 30
-      const xData = []
-      const yData = []
-      const tableData = []
-
-      // 生成X轴和Y轴数据
-      for (let i = days; i >= 0; i--) {
-        const date = moment()
-          .subtract(i, 'days')
-          .format('YYYY-MM-DD HH:mm:ss')
-        xData.push(date)
-        const value = (
-          parseFloat(val.standardValue) +
-          (Math.random() * 10 - 5)
-        ).toFixed(2)
-        yData.push(parseFloat(value))
-
-        tableData.push({
-          ...val,
-          measureTime: date,
-          measureValue: value,
-          isPass:
-            parseFloat(value) >= parseFloat(val.standardValueNeg) &&
-            parseFloat(value) <= parseFloat(val.standardValuePos)
-              ? '1'
-              : '0'
-        })
+    //报警趋势图搜索
+    async findTrend(standardValue) {
+      let standardValue1 = Number(standardValue)
+      console.log(standardValue1, 'standardValue1')
+      let startTime = ''
+      let endTime = ''
+      if (this.formTrend.time == null) {
+        startTime = moment(this.formTrend.time[0]).format('YYYY-MM-DD HH:mm:ss')
+        endTime = moment(this.formTrend.time[1]).format('YYYY-MM-DD HH:mm:ss')
       }
+      this.lineOption.legend.data = []
+      this.formTrend.standardId = this.dialogDataAalarm.standardID
+      post(iomPrecisionManagementController_trendAnalysis, {
+        pageSize: 10,
+        pageIndex: 1,
+        standardId: this.formTrend.standardId, //标准
+        startTime: startTime,
+        endTime: endTime
+      }).then(res => {
+        if (res.success === true) {
+          let createTimeList1 = []
+          if (res.data.createTimeList !== null) {
+            res.data.createTimeList.forEach(item => {
+              createTimeList1.push(moment(item).format('YYYY-MM-DD HH:mm:ss'))
+            })
+            console.log('createTimeList1', createTimeList1)
+          }
+          this.lineOption.xAxis[0].data = createTimeList1
+          this.lineOption.series[0].data = res.data.valueList
+          /*this.lineOption.series[0].data = res.data.scoreList*/
+          this.lineOption.series[0].markLine.data[0].yAxis = standardValue1
+          this.lineOption.series[0].markLine.data[1].yAxis =
+            res.data.standardValueNeg != null
+              ? Number(res.data.standardValueNeg)
+              : ''
 
-      // 更新表格数据
-      this.tableData1 = tableData
+          this.lineOption.yAxis[0].min =
+            res.data.standardValueNeg != null
+              ? Number(res.data.standardValueNeg) + -2
+              : -2
+          this.lineOption.series[0].markLine.data[2].yAxis =
+            res.data.standardValuePos != null
+              ? Number(res.data.standardValuePos)
+              : ''
+          console.log(
+            res.data.standardValueNeg,
+            ' res.data.standardValueNeg ',
+            '  res.data.standardValuePos',
+            res.data.standardValuePos,
+            this.lineOption.series[0].markLine,
+            '图'
+          )
 
-      // 更新图表数据
-      this.lineOptionHis.xAxis[0].data = xData
-      this.lineOptionHis.series[0].data = yData
-      this.lineOptionHis.series[0].name = val.itemName
-      this.lineOptionHis.legend.data = [val.itemName]
-      this.lineOptionHis.yAxis[0].min = Math.min(...yData) - 2
-      this.lineOptionHis.yAxis[0].max = Math.max(...yData) + 2
-    },
-    // 搜索
-    findAll() {
-      this.loading = true
-      // 模拟API请求延迟
-      setTimeout(() => {
-        this.tableData = this.generateTableData()
-        this.total = 200 // 模拟总数据量
-        this.loading = false
-      }, 500)
-    },
-    // 导出
-    useExport() {
-      this.$message.info('导出功能已触发')
-    },
-    // 分页大小改变
-    handleSizeChange(val) {
-      this.pageSize = val
-      this.pageIndex = 1
-      this.findAll()
-    },
-    // 页码改变
-    handleCurrentChange(val) {
-      this.pageIndex = val
-      this.findAll()
-    },
-    // 清空责任部门
-    clearDutyDepartmentId() {
-      this.form.dutyDepartmentId = ''
-      this.deviceList = this.generateMockData().deviceList
-    },
-    // 清空设备ID
-    claerDeviceId() {
-      this.form.deviceId = ''
-    },
-    // 根据部门查找设备
-    findDeviceByDepartID(val) {
-      // 模拟根据部门筛选设备
-      const allDevices = [
-        { id: '1', name: '轧机A1' },
-        { id: '2', name: '轧机A2' },
-        { id: '3', name: '磨床B1' },
-        { id: '4', name: '车床C1' },
-        { id: '5', name: '铣床D1' },
-        { id: '6', name: '钻床E1' },
-        { id: '7', name: '刨床F1' }
-      ]
+          /*弹窗表格*/
 
-      // 根据不同部门ID返回不同的设备列表
-      if (val === '1') {
-        // 维修部
-        this.deviceList = allDevices.filter(d => ['1', '2', '3'].includes(d.id))
-      } else if (val === '2') {
-        // 生产部
-        this.deviceList = allDevices.filter(d => ['4', '5', '6'].includes(d.id))
-      } else if (val === '3') {
-        // 质检部
-        this.deviceList = allDevices.filter(d => ['1', '3', '5'].includes(d.id))
-      } else {
-        // 设备部
-        this.deviceList = allDevices
+          for (let i = 0; i < res.data.historyList.length; i++) {
+            if (res.data.historyList[i].cycleEndTime != null) {
+              res.data.historyList[i].cycleEndTime = moment(
+                res.data.historyList[i].cycleEndTime
+              ).format('YYYY-MM-DD')
+            } else {
+              res.data.historyList[i].cycleEndTime = ''
+            }
+            if (res.data.historyList[i].cycleStartTime != null) {
+              res.data.historyList[i].cycleStartTime = moment(
+                res.data.historyList[i].cycleStartTime
+              ).format('YYYY-MM-DD')
+            } else {
+              res.data.historyList[i].cycleStartTime = ''
+            }
+
+            if (res.data.historyList[i].measureTime != null) {
+              res.data.historyList[i].measureTime = moment(
+                res.data.historyList[i].measureTime
+              ).format('YYYY-MM-DD HH:mm:ss')
+            } else {
+              res.data.tlist[i].measureTime == ''
+            }
+            //超期标识
+            res.data.historyList[i].isBeyond =
+              res.data.historyList[i].isBeyond == 0
+                ? '否'
+                : res.data.historyList[i].isBeyond == 1
+                  ? '是'
+                  : ''
+            //完成标记
+            res.data.historyList[i].isFinish =
+              res.data.historyList[i].isFinish == 0
+                ? '否'
+                : res.data.historyList[i].isFinish == 1
+                  ? '是'
+                  : ''
+          }
+
+          //console.log('数据', res)
+          let xAxis = []
+          let yAxis = []
+          res.data.historyList.forEach((item, index) => {
+            item.uuid = item.no
+            xAxis.unshift(item.measureTime)
+            yAxis.unshift(item.measureValue)
+          })
+          this.tableData1 = res.data.historyList
+
+          this.lineOptionHis.series[0].data = yAxis
+          this.lineOptionHis.xAxis[0].data = xAxis
+        }
+      })
+    },
+    echarts() {
+      var myChart = echarts.init(document.getElementById('score'), 'light')
+      let option = {
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+            type: 'cross',
+            label: { color: '#fff' },
+            crossStyle: { color: '#6d7882' }
+          }
+        },
+        legend: {
+          data: []
+        },
+        grid: [
+          {
+            show: false,
+            left: '3%',
+            right: '4%',
+            bottom: '3%',
+            containLabel: true
+          }
+        ],
+        xAxis: [
+          {
+            type: 'category',
+            axisLine: {
+              lineStyle: {
+                color: '#6d7882'
+              }
+            },
+            splitLine: { show: false },
+            boundaryGap: false,
+            data: []
+          }
+        ],
+        yAxis: [
+          {
+            type: 'value',
+            axisLine: {
+              show: false
+            },
+            splitLine: { lineStyle: { color: '#d4d7da' } }
+          }
+        ],
+
+        series: [
+          {
+            type: 'line',
+            data: [],
+            smooth: true,
+            markLine: {
+              silent: true,
+              lineStyle: {
+                color: '#333'
+              },
+              data: [
+                {
+                  yAxis: ''
+                },
+                {
+                  yAxis: ''
+                },
+                {
+                  yAxis: ''
+                }
+              ]
+            }
+          }
+          /*{
+            name: '换辊',
+            type: 'line',
+            data: [5, 6, 7, 8]
+          },
+          {
+            name: '设备故障',
+            type: 'line',
+            data: [9, 10, 11, 12]
+          },
+          {
+            name: '生产故障',
+            type: 'line',
+            data: [13, 14, 15, 16]
+          },
+          {
+            name: '轧机工作时间',
+            type: 'line',
+            data: [17, 18, 19, 20]
+          }*/
+        ],
+        dataZoom: [
+          /*  {
+            show: true,
+            realtime: true,
+            start: 0,
+            end: 10,
+            zoomOnMouseWheel: false
+          },
+          {
+            type: 'inside',
+            realtime: true,
+            start: 0,
+            end: 10,
+            zoomOnMouseWheel: false
+          }*/
+        ]
+      }
+      myChart.setOption(option)
+      window.onresize = function() {
+        myChart.resize()
       }
     },
-    // 设置测量时间
-    setMeasureTime(val) {
-      console.log('测量时间改变:', val)
-    },
-    // 趋势图关闭时回调
+    //关闭弹窗趋势图表
     getFormTimeEcharts() {
-      console.log('趋势图弹窗关闭')
+      this.$set(this.formTrend.time, 0, '')
+      this.$set(this.formTrend.time, 1, '')
     },
-    // 选择改变
-    handleSelectionChangeOther(val) {
-      console.log('选择改变:', val)
-      this.selectIDs = val.map(item => item.id)
-    },
-    handleSelectionChangeOther1(val) {
-      console.log('趋势表格选择改变:', val)
-    },
-    // 过滤改变
-    filterChange(filters) {
-      console.log('过滤改变:', filters)
-    },
-    filterChange1(filters) {
-      console.log('趋势表格过滤改变:', filters)
-    },
-    // 超期标识过滤
-    filterPlt(value, row) {
-      return row.isBeyond === value
-    },
-    // 行键
+    // 保存表格数据被选后分页跳选仍能保存
     getRowKey(row) {
       return row.id
     },
+    filterPlt(value, row) {
+      // console.log('表头筛选value：', value)
+      // console.log('row', row)
+      return true
+      // return row.score === value
+    },
+    //超期标识-表头筛选
+    filterChange(obj) {
+      const keys = Object.keys(obj)
+      const values = Object.values(obj)
+      let useDeptKeys = keys[0]
+      let useDeptNum = values[0][0]
+      console.log('useDeptKeys', useDeptKeys)
+      console.log('useDeptNum', useDeptNum)
+      if (useDeptKeys === 'statsName' && useDeptNum === '1') {
+        this.form.isBeyond = useDeptNum
+      } else if (useDeptKeys === 'statsName' && useDeptNum === '0') {
+        this.form.isBeyond = useDeptNum = useDeptNum
+      } else if (useDeptKeys === 'statsName' && useDeptNum === undefined) {
+        useDeptNum = ''
+        this.form.isBeyond = useDeptNum
+      }
+      this.pageIndex = 1
+      this.pageSize = 20
+      this.findAll()
+    },
+    handleSelectionChangeOther(val) {
+      console.log('val-select:', val)
+      if (val.length > 0) {
+        val.forEach(item => {
+          this.selectIDs.push(item.uuid)
+        })
+      } else {
+        this.selectIDs = []
+      }
+      let selectIDsEnd = []
+      /*selectIDsEnd = this.selectIDs.filter((item, index) => {
+        return this.selectIDs.indexOf(item) === index
+      })*/
+      selectIDsEnd = [...new Set(this.selectIDs)]
+      console.log('selectIDsEnd', selectIDsEnd)
+      this.newListArr = selectIDsEnd
+    },
+    //导出
+    useExport() {
+      /*var url =
+        'http://172.25.63.72:9100/iomPrecisionManagementController/exportMItemData.iom'
+      let link = document.createElement('a')
+      link.style.display = 'none'
+      link.href = url
+      link.setAttribute('download', '标准导出' + '.xlsx')
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link) //下载完成移除元素
+      window.URL.revokeObjectURL(url) //释放掉blob对象*/
+      /*if (this.selectCheckbox.length > 0) {
+        this.downloadFile()
+      } else {
+        this.downloadFileTwo()
+      }*/
+      this.params.selectIDs = []
+      this.downloadFile()
+      // this.downloadFileTwo()
+    },
+    //自定义导出post方法
+    downloadFile() {
+      let selectIDs = []
+      selectIDs = JSON.parse(JSON.stringify(this.newListArr))
+      /*post(exportCustomMItemDataWithLine, {
+        selectIDs
+      }).then(res => {
+        let data = res
+        if (!data) {
+          return
+        }
+        const url = window.URL.createObjectURL(new Blob([data]))
+        let link = document.createElement('a')
+        let myDate = new Date()
+
+        link.style.display = 'none'
+        link.href = url
+        link.setAttribute('download', '数据查询导出' + date2md(myDate) + '.xls')
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link) //下载完成移除元素
+        window.URL.revokeObjectURL(url) //释放掉blob对象
+      })*/
+      this.params.selectIDs = selectIDs
+      axios({
+        method: 'post',
+        url: exportCustomMItemDataWithLine,
+        data: this.params,
+        responseType: 'blob'
+      }).then(res => {
+        if (!res) {
+          return
+        }
+        const blob = new Blob([res.data], { type: 'application/vnd.ms-excel' })
+        const fileName = res.headers['content-disposition'].split('=')[1]
+        let url = ''
+        let isBlob = false
+        const errMsg = '下载出错，文件数据无法识别!'
+        let data = blob
+        if (data instanceof Blob) {
+          isBlob = true
+          url = window.URL.createObjectURL(data)
+        } else if (typeof data == 'string') {
+          // base64编码
+          url = data
+        } else {
+          this.$message.error(errMsg)
+          return
+        }
+
+        if ('download' in document.createElement('a')) {
+          // 非IE下载
+          const tmpLink = document.createElement('a')
+          tmpLink.download = fileName || ''
+          tmpLink.style.display = 'none'
+          tmpLink.href = url
+          document.body.appendChild(tmpLink)
+          tmpLink.click()
+          window.URL.revokeObjectURL(tmpLink.href)
+          document.body.removeChild(tmpLink)
+        } else {
+          // IE10+下载
+          if (isBlob) {
+            window.navigator.msSaveBlob(data, fileName)
+          } else {
+            console.log(errMsg)
+            return
+          }
+        }
+      })
+      this.selectCheckbox = []
+      this.$refs.multipleTable.clearSelection()
+      this.selectIDs = []
+      this.params.selectIDs = []
+    },
+    //自定义导出get方法
+    downloadFileTwo() {
+      let names = this.selectCheckbox.join()
+      console.log('names', names)
+      let codes = this.selectCheckboxCodes.join()
+      console.log('codes', codes)
+      var url =
+        'http://172.25.63.72:9100/iomPrecisionManagementController/exportCustomMItemData1.iom'
+      var urlfix = '?names=' + names + '&codes=' + codes
+      url = url + urlfix
+      // debugger
+      let link = document.createElement('a')
+      link.style.display = 'none'
+      link.href = url
+      link.setAttribute('download', '标准导出' + '.xlsx')
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link) //下载完成移除元素
+      window.URL.revokeObjectURL(url) //释放掉blob对象
+      this.selectCheckbox = []
+      this.selectCheckboxCodes = []
+    },
+    setMeasureTime() {
+      /* if (this.time == null) {
+        this.form.measureTime = ['', '']
+      } else {
+        this.form.measureTime = this.time
+      }*/
+    },
+    clearMeasureTime() {
+      /*if (this.time == null) {
+        this.form.measureTime = ['', '']
+      } else {
+        this.form.measureTime = this.time
+      }*/
+      this.form.measureTime = ['', '']
+    },
+
+    /*清空区域*/
+    claerProductionLineAreaId() {
+      this.form.productionLineAreaId = ''
+    },
+    /*清空设备*/
+    claerDeviceId() {
+      this.form.deviceId = ''
+    },
+
+    /*清空责任部门*/
+    clearDutyDepartmentId() {
+      this.form.dutyDepartmentId = ''
+      this.claerDeviceId()
+      this.getclearDutyDepartmentIdtoDevice()
+    },
+    //清空责任部门后，如果产线字段存在，产线联动设备
+    async getclearDutyDepartmentIdtoDevice() {
+      if (this.form.productionLineId != '') {
+        let res = await post(getProductionLineByDevice, {
+          productionLineID: this.form.productionLineId
+        })
+        if (res.success) {
+          this.deviceList = res.data
+        }
+      }
+    },
+    //搜索
+    findAll() {
+      // this.loading = true
+      this.form.pageIndex = this.pageIndex
+      this.form.pageSize = this.pageSize
+      //传给后台的时间参数
+      /* if (this.form.measureTime != '') {
+        this.form.measureTime = moment(this.time).format('YYYY-MM-DD')
+      }*/
+      if (this.form.measureTime == null) {
+        this.form.measureTime = ['', '']
+      }
+      console.log(this.form.measureTime, 'this.form.measureTime')
+      post(findManagementItem, this.form)
+        .then(res => {
+          if (res.success === true) {
+            for (let i = 0; i < res.data.tlist.length; i++) {
+              res.data.tlist[i].cycleEndTime = moment(
+                res.data.tlist[i].cycleEndTime
+              ).format('YYYY-MM-DD')
+              res.data.tlist[i].cycleStartTime = moment(
+                res.data.tlist[i].cycleStartTime
+              ).format('YYYY-MM-DD')
+
+              if (res.data.tlist[i].measureTime != null) {
+                /*res.data.tlist[i].measureTime = moment(
+                  res.data.tlist[i].measureTime
+                ).format('YYYY-MM-DD')*/
+              } else {
+                res.data.tlist[i].measureTime == ''
+              }
+              //超期标识
+              res.data.tlist[i].isBeyond =
+                res.data.tlist[i].isBeyond == 0
+                  ? '否'
+                  : res.data.tlist[i].isBeyond == 1
+                    ? '是'
+                    : ''
+              //完成标记
+              res.data.tlist[i].isFinish =
+                res.data.tlist[i].isFinish == 0
+                  ? '否'
+                  : res.data.tlist[i].isFinish == 1
+                    ? '是'
+                    : ''
+            }
+            res.data.tlist.forEach((item, index) => {
+              item.uuid = item.no
+            })
+            for (let i = 0; i < res.data.tlist.length; i++) {
+              switch (res.data.tlist[i].cycleUnit) {
+                case '0':
+                  res.data.tlist[i].cycleUnit = '无'
+                  break
+                case '1':
+                  res.data.tlist[i].cycleUnit = '班'
+                  break
+                case '2':
+                  res.data.tlist[i].cycleUnit = '日'
+                  break
+                case '3':
+                  res.data.tlist[i].cycleUnit = '周'
+                  break
+                case '4':
+                  res.data.tlist[i].cycleUnit = '月'
+                  break
+                case '5':
+                  res.data.tlist[i].cycleUnit = '年'
+                  break
+                default:
+                  res.data.tlist[i].cycleUnit = '其他'
+              }
+              if (res.data.tlist[i].cycleUnit != '其他') {
+                res.data.tlist[i].checkCycle =
+                  '1次/' +
+                  res.data.tlist[i].checkCycle +
+                  res.data.tlist[i].cycleUnit
+              } else if (res.data.tlist[i].cycleUnit == '其他') {
+                res.data.tlist[i].checkCycle = res.data.tlist[i].cycleUnit
+              }
+            }
+            this.tableData = res.data.tlist
+            console.log('this.tableData', this.tableData)
+            this.total = res.data.total
+            this.loading = false
+          }
+        })
+        .catch(err => {
+          console.log(err)
+        })
+    },
+    //下拉框获取数据
+    async findProductionLineArea() {
+      //事业部
+      let resB = await post(getBusinessUnitInfo, {})
+      this.businessList = resB.data
+      //产线
+      let resP = await post(getProductionLineInfo, {})
+      this.productionList = resP.data
+      console.log(resP.data, 'resP.data产线')
+
+      //测量方式
+      let res = await post(getMeasureTypeInfo, {})
+      this.productionAreaList = res.data
+      // 责任部门
+      let resD = await post(getDutyDepartmentInfo, {})
+      this.departmentList = resD.data
+      // 设备
+      let resDc = await post(getDeviceInfo, {})
+      this.deviceList = resDc.data
+      this.findAll()
+    },
+    // 产线-测量方式、测量方式-设备联动
+    async findAreaByLineID(value) {
+      //产线联动设备
+      let res = await post(getProductionLineByDevice, {
+        productionLineID: value
+      })
+      if (res.success) {
+        this.deviceList = res.data
+      }
+
+      /*产线-区域联动*/
+      const { data: respA } = await post(findAreaByLineID, { lineID: value })
+
+      this.productionLineAreaIdList = respA
+      this.form.productionLineAreaId = ''
+      /*   console.log(
+        respA,
+        this.productionLineAreaIdList,
+        'respA 产线-测量方式、测量方式-设备联动'
+      )*/
+      //产线-责任部门联动
+      const { data: respB } = await post(getDutyDepartmentInfo, {
+        productionLineID: value
+      })
+      this.departmentList = respB
+      this.form.dutyDepartmentId = ''
+      this.form.deviceId = ''
+
+      console.log(respA, respB)
+    },
+    //顶部表单根据责任部门查询-联动-设备
+    async findDeviceByDepartID(value) {
+      console.log('责任部门：', value)
+      // this.standersParam.dutyDepartmentId = value
+      // const { data: respB } = await post(
+      //   findAllStandersWithNoPage,
+      //   this.standersParam
+      // )
+      // this.standardList = respB
+      const { data: respA } = await post(findDeviceByDepartID, {
+        departID: value
+      })
+      console.log('责任部门：qingkong 返回', respA)
+      this.deviceList = respA
+    },
+    async findDeviceByAreaID(value) {
+      const { data: respA } = await post(findDeviceByAreaID, { areaID: value })
+      this.deviceList = respA
+    },
+    //测量方式清楚选项后，设备下拉框数据显示全部的
+    async findAllDevice() {
+      // 设备
+      let resDc = await post(getDeviceInfo, {})
+      this.deviceList = resDc.data
+    },
+    //console.log(`每页 ${val} 条`)
+    handleSizeChange(val) {
+      this.pageSize = val
+      this.form.pageSize = val
+      this.findAll(1)
+    },
+    //console.log(`当前页: ${val}`)
+    handleCurrentChange(val) {
+      this.$nextTick(() => {
+        this.$refs.multipleTable.bodyWrapper.scrollTop = 0
+      })
+      this.pageIndex = val
+      this.form.pageIndex = val
+      this.findAll(val)
+    },
+    /*------------------弹窗---------------------*/
+    handleSizeChange1(val) {
+      this.pageSize1 = val
+      this.form.pageSize1 = val
+      this.findAll1(1)
+    },
+    //console.log(`当前页: ${val}`)
+    handleCurrentChange1(val) {
+      this.$nextTick(() => {
+        this.$refs.multipleTable1.bodyWrapper.scrollTop = 0
+      })
+      this.pageIndex1 = val
+      this.form.pageIndex1 = val
+      this.findAll1(val)
+    },
+    // 保存表格数据被选后分页跳选仍能保存
     getRowKey1(row) {
       return row.id
     },
-    // 查找区域（模拟）
-    findProductionLineArea() {
-      // 注释掉原接口调用，使用模拟数据
-      console.log('查找区域数据（模拟）')
+    changeRed1({ row }) {
+      if (row.isPass == '0') {
+        return {
+          backgroundColor: '#fef0f0'
+          // 这个return的就是样式 可以是color 也可以是backgroundColor
+        }
+      }
+    },
+    //超期标识-表头筛选
+    filterChange1(obj) {
+      const keys = Object.keys(obj)
+      const values = Object.values(obj)
+      let useDeptKeys = keys[0]
+      let useDeptNum = values[0][0]
+      console.log('useDeptKeys', useDeptKeys)
+      console.log('useDeptNum', useDeptNum)
+      if (useDeptKeys === 'statsName' && useDeptNum === '1') {
+        this.form.isBeyond = useDeptNum
+        this.findAll()
+      } else if (useDeptKeys === 'statsName' && useDeptNum === '0') {
+        this.form.isBeyond = useDeptNum = useDeptNum
+        this.findAll()
+      } else if (useDeptKeys === 'statsName' && useDeptNum === undefined) {
+        useDeptNum = ''
+        this.form.isBeyond = useDeptNum
+        this.findAll()
+      }
+    },
+    handleSelectionChangeOther1(val) {
+      console.log('val-select:', val)
+      if (val.length > 0) {
+        val.forEach(item => {
+          this.selectIDs.push(item.uuid)
+        })
+      } else {
+        this.selectIDs = []
+      }
+      let selectIDsEnd = []
+      /*selectIDsEnd = this.selectIDs.filter((item, index) => {
+        return this.selectIDs.indexOf(item) === index
+      })*/
+      selectIDsEnd = [...new Set(this.selectIDs)]
+      console.log('selectIDsEnd', selectIDsEnd)
+      this.newListArr = selectIDsEnd
+    },
+    findAll1() {
+      this.loading1 = true
+      /*  this.form.pageIndex = this.pageIndex1
+      this.form.pageSize = this.pageSize1
+
+      if (this.form.measureTime == null) {
+        this.form.measureTime = ['', '']
+      }*/
+
+      post(findManagementItem, this.form)
+        .then(res => {
+          /*  if (res.success === true) {
+            for (let i = 0; i < res.data.tlist.length; i++) {
+              res.data.tlist[i].cycleEndTime = moment(
+                res.data.tlist[i].cycleEndTime
+              ).format('YYYY-MM-DD')
+              res.data.tlist[i].cycleStartTime = moment(
+                res.data.tlist[i].cycleStartTime
+              ).format('YYYY-MM-DD')
+
+              if (res.data.tlist[i].measureTime != null) {
+                res.data.tlist[i].measureTime = moment(
+                  res.data.tlist[i].measureTime
+                ).format('YYYY-MM-DD')
+              } else {
+                res.data.tlist[i].measureTime == ''
+              }
+              //超期标识
+              res.data.tlist[i].isBeyond =
+                res.data.tlist[i].isBeyond == 0
+                  ? '否'
+                  : res.data.tlist[i].isBeyond == 1
+                    ? '是'
+                    : ''
+              //完成标记
+              res.data.tlist[i].isFinish =
+                res.data.tlist[i].isFinish == 0
+                  ? '否'
+                  : res.data.tlist[i].isFinish == 1
+                    ? '是'
+                    : ''
+            }
+            res.data.tlist.forEach((item, index) => {
+              item.uuid = item.no
+            })
+            this.tableData = res.data.tlist
+            console.log('this.tableData', this.tableData)
+            this.total = res.data.total
+            this.loading1 = false
+          }*/
+        })
+        .catch(err => {
+          console.log(err)
+        })
     }
   }
 }
@@ -1374,7 +1990,11 @@ export default {
 
 <style lang="less" scoped>
 .contentBox {
-  padding: 15px;
+  height: 100%;
+  width: 100%;
+  //padding: 16px 24px 24px 24px;
+  overflow-x: auto;
+  overflow-y: auto;
 }
 /deep/.el-form.el-form--inline {
   height: 36px;
@@ -1408,37 +2028,6 @@ export default {
   line-height: 28px;
   font-size: 14px;
   width: 5%;
-  color: #3a3f63;
-}
-//时间组件背景色统一变灰
-/deep/.el-date-editor .el-range-input {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  border: none;
-  outline: 0;
-  display: inline-block;
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  width: 39%;
-  text-align: center;
-  font-size: 14px;
-  color: #2e382e;
-  background-color: #f5f5fa;
-}
-/deep/.el-dialog {
-  padding: 0;
-}
-/deep/.el-date-editor .el-range-separator {
-  display: inline-block;
-  height: 100%;
-  padding: 0 5px;
-  margin: 0;
-  text-align: center;
-  line-height: 28px;
-  font-size: 14px;
-  width: 8%;
   color: #3a3f63;
 }
 </style>

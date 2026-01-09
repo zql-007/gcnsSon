@@ -1,12 +1,26 @@
 <template>
-  <div
-    class="contentBox">
+  <div class="contentBox">
     <!--    表单区域-->
     <el-form
       :inline="true"
       :model="form"
       class="demo-form-inline"
     >
+      <!-- <el-form-item label="测量人">
+        <el-select
+          v-model="form.measurer"
+          clearable
+          style="width: 138px"
+          placeholder="测量人">
+          <el-option
+            v-for="item in measurerList"
+            :key="item.MEASURER"
+            :label="item.MEASURER"
+            :value="item.MEASURER">
+          </el-option>
+        </el-select>
+      </el-form-item>-->
+
       <el-form-item label="测量时间">
         <el-date-picker
           v-model="time"
@@ -146,19 +160,37 @@
         >
         </el-table-column>
       </el-table>
+      <!--   <el-pagination
+        :page-size="paginationDia.pageSize"
+        :total="paginationDia.total"
+        :align="paginationDia.align"
+        :current-page="paginationDia.currentPage"
+        :page-sizes="paginationDia.pageSizes"
+        layout="total, sizes, prev, pager, next, jumper"
+        @size-change="handleSizeChangeDia"
+        @current-change="handleCurrentChangeDia"
+      />-->
+      <!-- <span
+        slot="footer"
+        class="dialog-footer">
+        <el-button @click="dialogVisible = false">取 消</el-button>
+        <el-button
+          type="primary"
+          @click="dialogVisible = false">确 定</el-button>
+      </span>-->
     </el-dialog>
   </div>
 </template>
 
 <script>
-// import { get, post } from '@/lib/Util'
+import { get, post } from '@/lib/Util'
 import moment from 'moment'
 import tasilyEcharts from '@/components/TasilyEcharts'
-// import {
-//   iomPrecisionManagementController_findMyMeasure,
-//   iomPrecisionManagementController_findAllMeasurer,
-//   findHistoryByStandardID
-// } from '@/lib/ApiURL01'
+import {
+  iomPrecisionManagementController_findMyMeasure,
+  iomPrecisionManagementController_findAllMeasurer,
+  findHistoryByStandardID
+} from '@/lib/EquipPrecisManage/ApiURL01'
 export default {
   // layout: 'test',
   name: 'EquipPrecisManage-mark',
@@ -210,6 +242,9 @@ export default {
             type: 'value',
             axisLine: {
               show: false
+              /* lineStyle: {
+                  color: 'red'
+                }*/
             },
             splitLine: { lineStyle: { color: '#d4d7da' } }
           }
@@ -220,8 +255,43 @@ export default {
             data: [12, 16, 18, 10, 23, 33, 18, 12],
             smooth: true
           }
+          /*{
+            name: '换辊',
+            type: 'line',
+            data: [5, 6, 7, 8]
+          },
+          {
+            name: '设备故障',
+            type: 'line',
+            data: [9, 10, 11, 12]
+          },
+          {
+            name: '生产故障',
+            type: 'line',
+            data: [13, 14, 15, 16]
+          },
+          {
+            name: '轧机工作时间',
+            type: 'line',
+            data: [17, 18, 19, 20]
+          }*/
         ],
-        dataZoom: []
+        dataZoom: [
+          /*  {
+            show: true,
+            realtime: true,
+            start: 0,
+            end: 10,
+            zoomOnMouseWheel: false
+          },
+          {
+            type: 'inside',
+            realtime: true,
+            start: 0,
+            end: 10,
+            zoomOnMouseWheel: false
+          }*/
+        ]
       },
       dialogTableData: [],
       /*--------其他-------*/
@@ -237,6 +307,12 @@ export default {
       pageSize: 20,
       pageIndex: 1,
       total: 0,
+      /*      pagination: {
+        currentPage: 1,
+        pageSizes: [10, 20, 30, 40],
+        pageSize: 10,
+        total: 0
+      }, //分页查询*/
       tableHeadInfo: [
         {
           key: 'itemName',
@@ -263,6 +339,7 @@ export default {
           parent: '测量类型',
           width: ''
         },
+        //measureValue
         {
           key: 'measureValue',
           parent: '测量数值',
@@ -309,12 +386,12 @@ export default {
           width: '70'
         }
       ],
+
       tableData: []
     }
   },
   created() {
-    // 注释原接口调用
-    // this.findProductionLineArea()
+    /* this.findProductionLineArea()*/
   },
   mounted() {
     this.findAll(1)
@@ -326,57 +403,46 @@ export default {
       console.log('历史记录row:', row)
 
       this.standardID = row.standardID
-      // 注释接口调用，使用假数据
-      // post(findHistoryByStandardID, {
-      //   standardID: this.standardID
-      // }).then(res => {
-      //   ...
-      // })
-
-      // 生成假的历史数据
-      const mockData = []
-      for (let i = 0; i < 5; i++) {
-        const date = new Date()
-        date.setDate(date.getDate() - i)
-        mockData.push({
-          ...row,
-          id: row.id + i,
-          measureTime: moment(date).format('YYYY-MM-DD HH:mm:ss'),
-          totalScore: row.totalScore + (Math.random() * 10 - 5),
-          measureValue: (
-            row.measureValue *
-            (1 + (Math.random() * 0.2 - 0.1))
-          ).toFixed(2)
-        })
-      }
-
-      const xData = mockData.map(item => item.measureTime)
-      const yData = mockData.map(item => item.totalScore)
-
-      this.dialogTableData = mockData
-      this.lineOption.xAxis[0].data = xData
-      this.lineOption.series[0].data = yData
+      post(findHistoryByStandardID, {
+        standardID: this.standardID
+      }).then(res => {
+        if (res && res.success) {
+          let xData = []
+          let yData = []
+          for (let i = 0; i < res.data.length; i++) {
+            if (res.data[i].measureTime) {
+              res.data[i].measureTime = moment(res.data[i].measureTime).format(
+                'YYYY-MM-DD HH:mm:ss'
+              )
+            }
+            xData.push(res.data[i].measureTime)
+            yData.push(res.data[i].totalScore)
+          }
+          this.dialogTableData = res.data
+          this.lineOption.xAxis[0].data = xData
+          this.lineOption.series[0].data = yData
+          // this.paginationDia.total = res.data.totalElements
+        } else {
+          this.$message.error('未查询到历史数据！')
+          this.dialogTableData = []
+          this.lineOption.xAxis[0].data = []
+          this.lineOption.series[0].data = []
+        }
+      })
     },
     /*关闭历史弹窗*/
     handleClose() {
       this.dialogVisible = false
     },
-    //下拉框获取数据（已注释接口调用）
+    //下拉框获取数据
     async findProductionLineArea() {
       let data = []
-      // 注释接口调用
-      // let resB = await post(
-      //   iomPrecisionManagementController_findAllMeasurer,
-      //   {}
-      // )
-      // this.measurerList = resB.data
-
-      // 假数据
-      this.measurerList = [
-        { MEASURER: '张三' },
-        { MEASURER: '李四' },
-        { MEASURER: '王五' }
-      ]
+      //测量人
+      let resB = await post(
+        iomPrecisionManagementController_findAllMeasurer,
+        {}
+      )
+      this.measurerList = resB.data
       this.findAll()
     },
 
@@ -396,100 +462,60 @@ export default {
     },
 
     findAll(val) {
-      console.log(val, '333')
-      this.loading = true
+      // this.loading = true
       this.pageIndex = val
       this.form.pageIndex = val
+      //传给后台的时间参数
+      if (this.form.measureTime != '') {
+        this.form.measureTime = moment(this.time).format('YYYY-MM-DD')
+      }
 
-      // 注释接口调用
-      // post(iomPrecisionManagementController_findMyMeasure, this.form)
-      //   .then(res => {
-      //     ...
-      //   })
-      //   .catch(err => {
-      //     console.log(err)
-      //   })
-
-      // 生成假数据
-      setTimeout(() => {
-        const mockData = []
-        const totalCount = 58 // 总数据量
-        this.total = totalCount
-
-        const startIndex = (val - 1) * this.pageSize
-        const endIndex = Math.min(startIndex + this.pageSize, totalCount)
-
-        for (let i = startIndex; i < endIndex; i++) {
-          const cycleUnit = ['0', '1', '2', '3', '4', '5', '6'][
-            Math.floor(Math.random() * 7)
-          ]
-          let cycleText = ''
-          let checkCycleText = ''
-
-          switch (cycleUnit) {
-            case '0':
-              cycleText = '无'
-              break
-            case '1':
-              cycleText = '班'
-              break
-            case '2':
-              cycleText = '日'
-              break
-            case '3':
-              cycleText = '周'
-              break
-            case '4':
-              cycleText = '月'
-              break
-            case '5':
-              cycleText = '年'
-              break
-            case '6':
-              cycleText = '其他'
-              break
+      post(iomPrecisionManagementController_findMyMeasure, this.form)
+        .then(res => {
+          if (res.success === true) {
+            for (let i = 0; i < res.data.tlist.length; i++) {
+              res.data.tlist[i].measureTime = moment(
+                res.data.tlist[i].measureTime
+              ).format('YYYY-MM-DD HH:mm:ss')
+              res.data.tlist[i].cycleUnit =
+                res.data.tlist[i].cycleUnit == '0'
+                  ? '无'
+                  : res.data.tlist[i].cycleUnit == '1'
+                    ? '班'
+                    : res.data.tlist[i].cycleUnit == '2'
+                      ? '日'
+                      : res.data.tlist[i].cycleUnit == '3'
+                        ? '周'
+                        : res.data.tlist[i].cycleUnit == '4'
+                          ? '月'
+                          : res.data.tlist[i].cycleUnit == '5'
+                            ? '年'
+                            : res.data.tlist[i].cycleUnit == '6'
+                              ? '其他'
+                              : ' '
+              if (res.data.tlist[i].cycleUnit != '其他') {
+                res.data.tlist[i].checkCycle =
+                  '1次/' +
+                  res.data.tlist[i].checkCycle +
+                  res.data.tlist[i].cycleUnit
+              } else if (res.data.tlist[i].cycleUnit == '其他') {
+                res.data.tlist[i].checkCycle = res.data.tlist[i].cycleUnit
+              }
+            }
+            this.tableData = res.data.tlist
+            this.total = res.data.total
+            this.loading = false
+            console.log(res, 'res')
           }
-
-          if (cycleText !== '其他') {
-            const cycleNum = Math.floor(Math.random() * 10) + 1
-            checkCycleText = `1次/${cycleNum}${cycleText}`
-          } else {
-            checkCycleText = '其他'
-          }
-
-          const date = new Date()
-          date.setDate(date.getDate() - Math.floor(Math.random() * 30))
-
-          mockData.push({
-            id: i + 1,
-            standardID: 'STD' + (i + 1000),
-            itemName: `精度标准${i + 1}`,
-            dutyDepartmentName: `车间${(i % 3) + 1}`,
-            productionLineAreaName: `区域${(i % 5) + 1}`,
-            deviceName: `设备${(i % 4) + 1}`,
-            measureType: Math.random() > 0.5 ? '日常测量' : '定期测量',
-            measureValue: (Math.random() * 100).toFixed(2),
-            checkCycle: checkCycleText,
-            cycleUnit: cycleText,
-            totalScore: Math.floor(Math.random() * 50) + 50,
-            measureTime: moment(date).format('YYYY-MM-DD HH:mm:ss'),
-            measurer: ['张三', '李四', '王五', '赵六'][
-              Math.floor(Math.random() * 4)
-            ],
-            standardValue: (Math.random() * 50 + 50).toFixed(2),
-            standardValuePos: (Math.random() * 30 + 100).toFixed(2),
-            standardValueNeg: (Math.random() * 30).toFixed(2)
-          })
-        }
-
-        this.tableData = mockData
-        this.loading = false
-      }, 500) // 模拟网络延迟
+        })
+        .catch(err => {
+          console.log(err)
+        })
     },
     //每页显示多少条
     handleSizeChange(val) {
-      this.pageSize = val
-      this.form.pageSize = val
+      this.pageSize = val //分页组件的
+      this.form.pageSize = val //点击搜索传给后台的参数
       this.findAll(1)
     },
     //当前所在第几页
@@ -503,8 +529,16 @@ export default {
     },
     //导出
     useExport() {
-      // 注释实际导出接口，保留交互效果
-      this.$message.success('导出功能已触发（模拟）')
+      var url =
+        'http://172.25.63.72:9100/iomPrecisionManagementController/exportMyMItemData.iom'
+      let link = document.createElement('a')
+      link.style.display = 'none'
+      link.href = url
+      link.setAttribute('download', '标准导出' + '.xlsx')
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link) //下载完成移除元素
+      window.URL.revokeObjectURL(url) //释放掉blob对象
     },
     handleSelectionChange() {}
   }
@@ -513,7 +547,11 @@ export default {
 
 <style lang="less" scoped>
 .contentBox {
-  padding: 15px;
+  height: 100%;
+  width: 100%;
+  padding: 16px 24px 24px 24px;
+  overflow-x: auto;
+  overflow-y: auto;
 }
 /deep/.el-form.el-form--inline {
   height: 36px;
@@ -537,8 +575,5 @@ export default {
 }
 /deep/.el-card__body {
   padding: 24px;
-}
-/deep/.el-dialog {
-  padding: 0;
 }
 </style>

@@ -136,6 +136,16 @@
         </el-select>
       </el-form-item>
       <el-form-item label="时间">
+        <!--        <el-date-picker
+          v-model="searchForm.dateRange"
+          :start-placeholder="searchForm.beginDate"
+          :end-placeholder="searchForm.endDate"
+          type="daterange"
+          range-separator="至"
+          format="yyyy-MM-dd"
+          value-format="yyyy-MM-dd"
+          @change="dateChange">
+        </el-date-picker>-->
         <el-date-picker
           v-model="searchForm.beginDate"
           type="date"
@@ -195,15 +205,6 @@
           上报分厂
         </el-button>
       </el-form-item>
-      <!--      <el-form-item v-if="isShowBusi">
-        <el-button
-          type="primary"
-          icon="el-icon-thumb"
-          @click="clickApproval"
-        >
-          上报事业部
-        </el-button>
-      </el-form-item>-->
     </el-form>
 
     <el-card class="CardTable">
@@ -405,6 +406,13 @@
               <span v-else>{{ scope.row.obsStarTime }}</span>
             </template>
           </el-table-column>
+          <!--          <el-table-column
+            prop="creDate"
+            label="上报时间"
+            show-overflow-tooltip
+            sortable
+            width="160">
+          </el-table-column>-->
           <el-table-column
             prop="area"
             label="隐患区域"
@@ -544,13 +552,18 @@
               <span v-else>{{ scope.row.emergencyResponse }}</span>
             </template>
           </el-table-column>
+          <!--          <el-table-column
+            prop="statusName"
+            label="隐患单处理状态"
+            width="110">
+          </el-table-column>-->
           <el-table-column
             prop="sourceType"
             label="采集方式"
             width="90"
           >
             <template v-slot="scope">
-              {{ scope.row.sourceType == 'A' ? '人工' : scope.row.sourceType == 'B' ? '自动' : '' }}
+              {{ scope.row.sourceType=='A'?'人工':scope.row.sourceType=='B'?'自动':'' }}
             </template>
           </el-table-column>
           <el-table-column
@@ -560,6 +573,20 @@
             width="180"
           >
             <template slot-scope="scope">
+              <!--              <el-form-item
+                v-if="scope.row.isEditable"
+                :prop="'EquipDangers.'+scope.$index+'.expectTime'"
+                :rules="[{ required: true, message: '请填写内容', trigger: ['blur','change'] }]">
+                <el-date-picker
+                  :disabled="scope.row.isDisable"
+                  v-model="scope.row.expectTime"
+                  type="datetime"
+                  style="width: 168px"
+                  format="yyyy-MM-dd HH:mm:ss"
+                  value-format="yyyy-MM-dd HH:mm:ss"
+                  placeholder="选择时间">
+                </el-date-picker>
+              </el-form-item>-->
               <el-tooltip
                 :disabled="scope.row.color === 'red' ? false : scope.row.color === 'yellow' ? false : true"
                 :content="scope.row.color === 'red' ? '红色：超期' : scope.row.color === 'yellow' ? '橙色：临期': false"
@@ -670,7 +697,7 @@
                 type="text"
                 @click="clickUpdate(scope.row)"
               >
-                {{ scope.row.isEditable ? '确认' : '修改' }}
+                {{ scope.row.isEditable?'确认':'修改' }}
               </el-button>
               <el-button
                 v-show="scope.row.isEditable"
@@ -718,7 +745,7 @@
                 style="color: orange"
                 @click="TurnHiddenDangers(scope.row)"
               >
-                {{ scope.row.transFal == 1 ? '已转故障' : '转故障' }}
+                {{ scope.row.transFal==1?'已转故障':'转故障' }}
               </el-button>
             </template>
           </el-table-column>
@@ -737,7 +764,7 @@
       </el-form>
     </el-card>
 
-    <!-- 变更对话框 -->
+    <!--    变更对话框-->
     <el-dialog
       :visible.sync="dialogVisibleModify"
       :close-on-click-modal="false"
@@ -792,7 +819,7 @@
         >确 定</el-button>
       </span>
     </el-dialog>
-    <!-- 隐患详情 -->
+    <!--    隐患详情-->
     <el-dialog
       :visible.sync="dialogVisible"
       :before-close="handleClose"
@@ -837,6 +864,18 @@
           </div>
         </el-col>
       </el-row>
+      <!--      <el-row
+        :gutter="40"
+        style="margin-top: 20px;margin-left: 3px">
+        <el-col :span="12">
+          <div style="font-weight: 400;font-size: 18px;color: #303133;">车间</div>
+          <div style="margin-top: 8px">{{ dialogData.workDeptName }}</div>
+        </el-col>
+        <el-col :span="12">
+          <div style="font-weight: 400;font-size: 18px;color: #303133;">专业</div>
+          <div style="margin-top: 8px">{{ dialogData.majDelayName }}</div>
+        </el-col>
+      </el-row>-->
       <el-row
         :gutter="40"
         style="margin-top: 20px;margin-left: 3px"
@@ -907,7 +946,7 @@
             采集方式
           </div>
           <div style="margin-top: 8px">
-            {{ dialogData.sourceType == 'A' ? '人工' : dialogData.sourceType == 'B' ? '自动' : '' }}
+            {{ dialogData.sourceType=='A'?'人工':dialogData.sourceType=='B'?'自动':'' }}
           </div>
         </el-col>
       </el-row>
@@ -999,7 +1038,7 @@
             是否完成
           </div>
           <div style="margin-top: 8px">
-            {{ dialogData.isFinish === 'Y' ? '是' : '否' }}
+            {{ dialogData.isFinish==='Y'?'是':'否' }}
           </div>
         </el-col>
       </el-row>
@@ -1067,19 +1106,18 @@
 </template>
 
 <script>
-// 注释掉接口导入，避免接口调用错误
-// import {
-//   addDangerHandleRecord,
-//   batchDeleteDangerInfoList,
-//   batchUpdateDangerInfoList,
-//   findAllByTableId,
-//   findAllDangerHandleRecord,
-//   findAllDangerInfoList,
-//   queryWorkDeptInfo,
-//   Turn_To_Hidden_Dangers,
-//   updatePlanDate
-// } from '@/lib/RiskManageApi'
-// import { post } from '@/lib/Util'
+import {
+  addDangerHandleRecord,
+  batchDeleteDangerInfoList,
+  batchUpdateDangerInfoList,
+  findAllByTableId,
+  findAllDangerHandleRecord,
+  findAllDangerInfoList,
+  queryWorkDeptInfo,
+  Turn_To_Hidden_Dangers,
+  updatePlanDate
+} from '@/lib/EquipPrecisManage/RiskManageApi'
+import { post } from '@/lib/Util'
 import {
   dateCompare,
   dateToNowH,
@@ -1107,573 +1145,1753 @@ export default {
       updateExceptTime: null,
       labelPositionModify: 'right',
       rulesModify: {
-        expectTime: [
-          { required: true, message: '请选择计划处理时间', trigger: 'change' }
-        ],
         updDetail: [
           { required: true, message: '请填写变更原因', trigger: 'blur' }
         ]
       },
-      dialogVisible: false,
-      dialogData: {},
-      comsys: {
-        tableRowIndex: (index, pageIndex, pageSize) => {
-          return (pageIndex - 1) * pageSize + index + 1
-        }
-      },
+      loading: false,
+      userNo: this.$store.getters['user/getUserNo'],
+      userInfo: this.$store.getters['user/getUserInfo'] || {},
       searchForm: {
-        pageIndex: 1,
-        pageSize: 16,
-        factoryNo: '',
-        workDeptNo: '',
-        fangerType: '',
-        fangerGrade: '',
-        hndlStus: '',
-        status: '',
-        isDelay: '',
+        isSelf: 0,
+        factoryCode: '',
+        factoryNo: '', //产线
+        factoryName: '',
+        workDeptNo: '', //车间
+        workDeptName: '',
+        fangerType: '', //类型
+        fangerTypeName: '',
+        fangerGrade: '', //级别
+        fangerGradeName: '',
+        dateRange: [],
+        beginDate: getMonthFirstDay(), //开始日期
+        endDate: getMonthLastDay(), //结束日期
+        dangerDesc: '', //关键字
+        isSubmit: '', //是否已提交 Y 已提交 N 未提交
+        isAplay: '', //是否已申报 Y 已申报 N 未申报
+        //隐患处理状态 A:新建 B:车间已提交分厂 C:分厂已提交事业部 D:已申报事业部
+        //技术员角色:查询A,可修改
+        //车间主任角色:查询A，可提交分厂
+        //分厂领导角色:查询B，可提交事业部
+        hndlStus: '', //隐患处理状态 A:新建 B:车间已提交分厂 C:分厂已提交事业部 D:已申报事业部
+        hndlStusName: '',
+        status: '', //隐患处理状态
+        statusName: '',
+        isDelay: '', //是否超时
+        isDelayName: '',
+        isAuto: '', //采集方式手动自动
+        isAutoName: '',
         sourceType: '',
-        beginDate: '',
-        endDate: '',
-        dangerDesc: '',
-        isSelf: 0
-      },
-      // 假数据：产线列表
-      newFactoryList: [
-        { id: 'F001', name: '产线一' },
-        { id: 'F002', name: '产线二' },
-        { id: 'F003', name: '产线三' }
-      ],
-      // 假数据：车间列表
-      newWorkDeptList: [
-        { id: 'W001', name: '车间一' },
-        { id: 'W002', name: '车间二' }
-      ],
-      // 假数据：隐患类型列表
-      fangerTypeList: [
-        { id: 'T001', name: '设备故障' },
-        { id: 'T002', name: '操作不当' },
-        { id: 'T003', name: '环境因素' }
-      ],
-      // 假数据：隐患级别列表
-      fangerGradeList: [
-        { id: 'A', name: '一般' },
-        { id: 'B', name: '较大' },
-        { id: 'C', name: '重大' }
-      ],
-      // 假数据：上报节点列表
-      hndlStusList: [
-        { id: 'A', name: '初始' },
-        { id: 'B', name: '分厂' },
-        { id: 'C', name: '事业部' }
-      ],
-      // 假数据：处理状态列表
-      statusList: [
-        { id: '0', name: '未处理' },
-        { id: '1', name: '处理中' },
-        { id: '2', name: '已处理' }
-      ],
-      // 假数据：超时列表
-      delayList: [{ id: '0', name: '未超时' }, { id: '1', name: '已超时' }],
-      // 假数据：采集方式列表
-      autoList: [{ id: 'A', name: '人工' }, { id: 'B', name: '自动' }],
-      // 假数据：产线列表（表格内使用）
-      factoryList: [
-        { id: 'F001', name: '产线一' },
-        { id: 'F002', name: '产线二' },
-        { id: 'F003', name: '产线三' }
-      ],
-      // 假数据：产线类别列表
+        userNo: '',
+        pageIndex: 1,
+        pageSize: 16
+      }, //列表外层查询表单
+      //产线
+      factoryList: this.$store.getters['factory/getFactoryList'] || [],
+      newFactoryList: this.$store.getters['factory/getNewFactoryList'] || [],
+      //产线类别
       factoryGradeList: [
-        { id: 'G001', name: '一类' },
-        { id: 'G002', name: '二类' }
+        {
+          id: 'A',
+          name: '主要产线'
+        },
+        {
+          id: 'B',
+          name: '重要产线'
+        },
+        {
+          id: 'C',
+          name: '辅助产线'
+        }
       ],
-      // 假数据：车间列表（表格内使用）
-      newWorkDeptList2: [
-        { id: 'W001', name: '车间一' },
-        { id: 'W002', name: '车间二' }
-      ],
-      // 假数据：专业列表
+      //专业类型
       majDelayList: [
-        { id: 'M001', name: '机械' },
-        { id: 'M002', name: '电气' },
-        { id: 'M003', name: '自动化' }
+        {
+          id: 'A',
+          name: '自控'
+        },
+        {
+          id: 'B',
+          name: '仪表'
+        },
+        {
+          id: 'E',
+          name: '电气'
+        },
+        {
+          id: 'L',
+          name: '液压润滑'
+        },
+        {
+          id: 'M',
+          name: '机械'
+        },
+        {
+          id: 'O',
+          name: '其他'
+        }
       ],
-      // 假数据：是否列表
-      yesOrNotList: [{ id: 'Y', name: '是' }, { id: 'N', name: '否' }],
-      // 表格数据
+      // 隐患类型
+      fangerTypeList: [
+        {
+          id: 'A',
+          name: '安全'
+        },
+        {
+          id: 'B',
+          name: '环保'
+        },
+        {
+          id: 'C',
+          name: '质量'
+        },
+        {
+          id: 'D',
+          name: '生产'
+        },
+        {
+          id: 'E',
+          name: '减产'
+        }
+      ],
+      //车间列表
+      workDeptList: [
+        {
+          id: '1',
+          name: '原料车间'
+        },
+        {
+          id: '2',
+          name: '转炉车间'
+        },
+        {
+          id: '3',
+          name: '精炼车间'
+        },
+        {
+          id: '4',
+          name: '连铸车间'
+        },
+        {
+          id: '5',
+          name: '运行车间'
+        },
+        {
+          id: '6',
+          name: '机修车间'
+        },
+        {
+          id: '7',
+          name: '电修车间'
+        },
+        {
+          id: '8',
+          name: '热处理车间'
+        },
+        {
+          id: '9',
+          name: '精整车间'
+        },
+        {
+          id: '10',
+          name: '产品车间'
+        },
+        {
+          id: '11',
+          name: '机加工车间'
+        },
+        {
+          id: '12',
+          name: '后道工序车间'
+        },
+        {
+          id: '13',
+          name: '渣处理车间'
+        },
+        {
+          id: '14',
+          name: '石灰车间'
+        }
+      ],
+      newWorkDeptList: [],
+      newWorkDeptList2: [],
+      //隐患级别列表
+      fangerGradeList: [
+        {
+          id: 'A',
+          name: '一般隐患'
+        },
+        {
+          id: 'B',
+          name: '较大隐患'
+        },
+        {
+          id: 'C',
+          name: '重大隐患'
+        }
+      ],
+      //是否已提交
+      isSubmitList: [
+        {
+          id: 'Y',
+          name: '已提交'
+        },
+        {
+          id: 'N',
+          name: '未提交'
+        }
+      ],
+      //是否已申报
+      isApplyList: [
+        {
+          id: 'Y',
+          name: '已申报'
+        },
+        {
+          id: 'N',
+          name: '未申报'
+        }
+      ],
+      // 隐患处理状态
+      hndlStusList: [
+        {
+          id: 'A',
+          name: '新建'
+        },
+        {
+          id: 'B',
+          name: '已上报分厂'
+        },
+        {
+          id: 'C',
+          name: '已上报事业部'
+        },
+        {
+          id: 'D',
+          name: '已申报'
+        },
+        {
+          id: 'E',
+          name: '已完成'
+        }
+      ],
+      // 隐患单处理状态
+      statusList: [
+        {
+          id: 'A',
+          name: '未处理'
+        },
+        // {
+        //   id: 'D',
+        //   name: '处理中'
+        // },
+        {
+          id: 'E',
+          name: '已处理'
+        }
+      ],
+      // 超时
+      delayList: [
+        {
+          id: 'Y',
+          name: '是'
+        },
+        {
+          id: 'N',
+          name: '否'
+        }
+      ],
+      // 手动自动
+      autoList: [
+        {
+          id: 'A',
+          name: '人工'
+        },
+        {
+          id: 'B',
+          name: '自动'
+        }
+      ],
+      //是否完成
+      yesOrNotList: [
+        {
+          id: 'Y',
+          name: '是'
+        },
+        {
+          id: 'N',
+          name: '否'
+        }
+      ],
       EquipDangers: [],
       total: 0,
-      loading: false,
-      allSelected: false,
-      isIndeterminate: false,
+      selectChangeList: [],
+      dangerDesc: '', // 隐患情况说明
+      emergencyResponse: '', //应急预案
+      hndlType: '', //处置方法
+      workContentList: [], //处置过程跟踪
+      equipDangersHeader: [
+        // { header: 'ID', key: 'id', width: 10, style: { numFmt: '@' } },
+        {
+          header: '隐患单编号',
+          key: 'dangerNo',
+          width: 20,
+          style: { numFmt: '@' }
+        },
+        {
+          header: '产线',
+          key: 'factoryName',
+          width: 10,
+          style: { numFmt: '' }
+        },
+        {
+          header: '产线类别',
+          key: 'factoryGradeName',
+          width: 10,
+          style: { numFmt: '' }
+        },
+        {
+          header: '车间',
+          key: 'workDeptName',
+          width: 10,
+          style: { numFmt: '' }
+        },
+        {
+          header: '专业',
+          key: 'majDelayName',
+          width: 10,
+          style: { numFmt: '' }
+        },
+        {
+          header: '发现时间',
+          key: 'obsStarTime',
+          width: 20,
+          style: { numFmt: 'YYYY-MM-DD HH:mm:ss' }
+        },
+        {
+          header: '上报时间',
+          key: 'creDate',
+          width: 20,
+          style: { numFmt: 'YYYY-MM-DD HH:mm:ss' }
+        },
+        { header: '隐患区域', key: 'area', width: 10, style: { numFmt: '@' } },
+        {
+          header: '隐患情况说明',
+          key: 'dangerDesc',
+          width: 30,
+          style: { numFmt: '@' }
+        },
+        {
+          header: '隐患类型',
+          key: 'fangerTypeName',
+          width: 10,
+          style: { numFmt: '' }
+        },
+        {
+          header: '隐患级别',
+          key: 'fangerGradeName',
+          width: 10,
+          style: { numFmt: '' }
+        },
+        {
+          header: '隐患状态',
+          key: 'hndlStusName',
+          width: 10,
+          style: { numFmt: '' }
+        },
+        {
+          header: '应急预案',
+          key: 'emergencyResponse',
+          width: 20,
+          style: { numFmt: '@' }
+        },
+        {
+          header: '计划何时处理',
+          key: 'expectTime',
+          width: 20,
+          style: { numFmt: 'YYYY-MM-DD HH:mm:ss' }
+        },
+        {
+          header: '造成产线停机时间(小时)',
+          key: 'falMintue',
+          width: 30,
+          style: { numFmt: '' }
+        },
+        {
+          header: '是否完成',
+          key: 'isFinishName',
+          width: 20,
+          style: { numFmt: '' }
+        },
+        {
+          header: '处置方法',
+          key: 'hndlType',
+          width: 20,
+          style: { numFmt: '@' }
+        }
+      ], //隐患列表导出Header
+      equipDangersDataValidation: [
+        {
+          col: 2,
+          dataValidation: {
+            type: 'list',
+            allowBlank: true,
+            formulae: [],
+            operator: 'notEqual',
+            showErrorMessage: true,
+            errorStyle: 'error',
+            errorTitle: '产线',
+            error: '产线选择错误'
+          }
+        },
+        {
+          col: 3,
+          dataValidation: {
+            type: 'list',
+            allowBlank: true,
+            formulae: [],
+            operator: 'notEqual',
+            showErrorMessage: true,
+            errorStyle: 'error',
+            errorTitle: '产线类别',
+            error: '产线类别选择错误'
+          }
+        },
+        {
+          col: 5,
+          dataValidation: {
+            type: 'list',
+            allowBlank: true,
+            formulae: [],
+            operator: 'notEqual',
+            showErrorMessage: true,
+            errorStyle: 'error',
+            errorTitle: '专业',
+            error: '专业选择错误'
+          }
+        },
+        {
+          col: 6,
+          dataValidation: {
+            type: 'date',
+            operator: 'between',
+            showErrorMessage: true,
+            allowBlank: true,
+            dateFormats: ['DD/MM/YYYY[H]HH:mm:ss'],
+            formulae: [new Date(1900, 0, 1), new Date(2050, 11, 31)]
+          }
+        },
+        {
+          col: 10,
+          dataValidation: {
+            type: 'list',
+            allowBlank: true,
+            formulae: [],
+            operator: 'notEqual',
+            showErrorMessage: true,
+            errorStyle: 'error',
+            errorTitle: '隐患类型',
+            error: '隐患类型选择错误'
+          }
+        },
+        {
+          col: 11,
+          dataValidation: {
+            type: 'list',
+            allowBlank: true,
+            formulae: [],
+            operator: 'notEqual',
+            showErrorMessage: true,
+            errorStyle: 'error',
+            errorTitle: '隐患级别',
+            error: '隐患级别选择错误'
+          }
+        },
+        {
+          col: 13,
+          dataValidation: {
+            type: 'date',
+            operator: 'between',
+            showErrorMessage: true,
+            allowBlank: true,
+            showInputMessage: true,
+            prompTitle: '时间',
+            promp: '时间格式:YYYY-MM-DD HH:mm:ss',
+            dateFormats: ['DD/MM/YYYY[H]HH:mm:ss'],
+            formulae: [new Date(1900, 0, 1), new Date(2050, 11, 31)]
+          }
+        },
+        {
+          col: 14,
+          dataValidation: {
+            type: 'decimal',
+            allowBlank: true,
+            formulae: [0],
+            operator: 'greaterThanOrEqual',
+            showErrorMessage: true,
+            errorStyle: 'error',
+            errorTitle: '造成产线停机时间',
+            error: '造成产线停机时间输入错误'
+          }
+        },
+        {
+          col: 15,
+          dataValidation: {
+            type: 'list',
+            allowBlank: true,
+            formulae: [],
+            operator: 'notEqual',
+            showErrorMessage: true,
+            errorStyle: 'error',
+            errorTitle: '是否完成',
+            error: '是否完成选择错误'
+          }
+        }
+      ], //隐患列表导出数据验证
+      majDelayListHeader: [], //专业类型
+      fangerTypeListHeader: [], // 隐患类型
+      fangerGradeListHeader: [], // 隐患级别
+      factoryListHeader:
+        this.$store.getters['factory/getFactoryListHeader'] || [], //产线
+      factoryGradeListHeader: [], //产线类别
+      isFinishListHeader: [], //是否完成
+      allSelected: false, //全选
+      isIndeterminate: false, //不确定状态
+      dialogVisible: false,
       isShowFactory: true,
-      isShowBusi: true
+      isShowBusi: true,
+      roleList: this.$store.getters['user/getUserRole'] || [],
+      dialogData: {}
+    }
+  },
+  watch: {
+    EquipDangers: {
+      handler: function(val, oldVal) {
+        console.log(val, oldVal)
+        let allChecked = true
+        //全不选
+        let allNotChecked = true
+        this.selectChangeList = []
+        val.forEach(item => {
+          if (item.checked) {
+            allNotChecked = false
+            this.isIndeterminate = true
+            this.selectChangeList.push(item)
+          } else {
+            allChecked = false
+          }
+        })
+        this.allSelected = allChecked
+        if (allChecked) {
+          this.isIndeterminate = false
+        }
+      },
+      // 深度观察监听
+      deep: true
     }
   },
   created() {
-    // 初始化时加载假数据
-    this.loadMockData()
+    console.log('this.userNo', this.userInfo.userNo)
+    console.log('userInfo', this.userInfo)
+    console.log('factoryList', this.factoryList)
+    console.log('roleList', this.roleList)
+    this.initBtn()
+    Promise.all([this.initParams()]).then(() => {
+      this.query()
+    })
+    //查询
+    this.findSelect()
+    this.findMajDelayList()
+    this.initHeader()
   },
   methods: {
-    // 加载假数据
-    loadMockData() {
-      this.loading = true
-      // 模拟接口请求延迟
-      setTimeout(() => {
-        // 生成假的表格数据
-        this.EquipDangers = Array.from({ length: 16 }, (_, i) => {
-          const id = i + 1
-          const grade = ['A', 'B', 'C'][Math.floor(Math.random() * 3)]
-          const now = new Date()
-          const pastDate = new Date(
-            now.getTime() - Math.random() * 30 * 24 * 60 * 60 * 1000
-          )
-          const futureDate = new Date(
-            now.getTime() + Math.random() * 15 * 24 * 60 * 60 * 1000
-          )
-          console.log('futureDate', futureDate)
-
-          // 随机设置颜色（超期/临期/正常）
-          let color = ''
-          const random = Math.random()
-          if (random < 0.3) color = 'red'
-          else if (random < 0.6) color = 'yellow'
-
-          return {
-            id: `D${id.toString().padStart(3, '0')}`,
-            checked: false,
-            isEditable: false,
-            transFal: Math.random() > 0.7 ? 1 : 0,
-            factoryNo: `F00${Math.floor(Math.random() * 3) + 1}`,
-            factoryName: `产线${Math.floor(Math.random() * 3) + 1}`,
-            factoryGrade: `G00${Math.floor(Math.random() * 2) + 1}`,
-            factoryGradeName: `产线类别${Math.floor(Math.random() * 2) + 1}`,
-            workDeptNo: `W00${Math.floor(Math.random() * 2) + 1}`,
-            workDeptName: `车间${Math.floor(Math.random() * 2) + 1}`,
-            majDelay: `M00${Math.floor(Math.random() * 3) + 1}`,
-            majDelayName: ['机械', '电气', '自动化'][
-              Math.floor(Math.random() * 3)
-            ],
-            obsStarTime: this.convertTimeFormat(pastDate),
-            creDate: this.convertTimeFormat(pastDate),
-            area: `区域${Math.floor(Math.random() * 10) + 1}`,
-            dangerDesc: `隐患情况说明${id}：设备运行异常，需要及时处理`,
-            fangerType: `T00${Math.floor(Math.random() * 3) + 1}`,
-            fangerTypeName: ['设备故障', '操作不当', '环境因素'][
-              Math.floor(Math.random() * 3)
-            ],
-            hndlStus: ['A', 'B', 'C'][Math.floor(Math.random() * 3)],
-            hndlStusName: ['初始', '分厂', '事业部'][
-              Math.floor(Math.random() * 3)
-            ],
-            fangerGrade: grade,
-            emergencyResponse: `应急预案${id}：立即停机检查，排除故障后再启动`,
-            sourceType: Math.random() > 0.5 ? 'A' : 'B',
-            expectTime: this.convertTimeFormat(futureDate),
-            color: color,
-            falMintue: Math.floor(Math.random() * 10) + 1,
-            workContent: `处理中：正在进行设备检查${id}`,
-            isFinish: Math.random() > 0.5 ? 'Y' : 'N',
-            isFinishName: Math.random() > 0.5 ? '是' : '否',
-            hndlType: `处理方法${id}：更换损坏部件`,
-            isDisable: Math.random() > 0.7,
-            disableHandleType: Math.random() > 0.8,
-            creUserNo: `U${id.toString().padStart(3, '0')}`,
-            creUserName: `用户${id}`
+    //转故障
+    async TurnHiddenDangers(row) {
+      console.log({ EquipDangers: [row] })
+      let res = await post(Turn_To_Hidden_Dangers, { EquipDangers: [row] })
+      // console.log('转故障', res)
+      if (res.success) {
+        let formData = {
+          falNo: '',
+          factoryName: '',
+          factoryNo: '',
+          respDept: '',
+          respDeptNo: '',
+          majDelay: '',
+          majDelayName: '',
+          area: '',
+          areaNo: '',
+          eqName: '',
+          eqNo: '',
+          falBegDateTime: '',
+          falEndDateTime: '',
+          isStop: '',
+          falDesc: '',
+          falDon: '',
+          reasonLess: '',
+          rsonName: '',
+          rsonNo: '',
+          reportTimeout: '',
+          isDeclDanger: 'N',
+          repairFal: '',
+          planDate: '',
+          finishDate: '',
+          manageTec: '',
+          creUserNo: '',
+          resPerson: ''
+        }
+        Object.keys(formData).forEach(item => {
+          formData[item] = res.data.equipFailure[item]
+            ? res.data.equipFailure[item]
+            : ''
+        })
+        // console.log('数据', formData)
+        this.$router.push({
+          path: '/EquipDangerManage/InformatmManage/historyFaultInfo',
+          query: {
+            formData: formData
           }
         })
-
-        // 设置总条数
-        this.total = 50
-        this.loading = false
-      }, 500)
-    },
-
-    // 格式化日期
-    formatDate(date) {
-      return moment(date).format('yyyy-MM-dd HH:mm:ss')
-    },
-    convertTimeFormat(gmtTimeString) {
-      // 创建Date对象
-      const date = new Date(gmtTimeString)
-
-      // 获取各个时间部分
-      const year = date.getFullYear()
-      const month = String(date.getMonth() + 1).padStart(2, '0') // 月份从0开始，需要+1
-      const day = String(date.getDate()).padStart(2, '0')
-      const hours = String(date.getHours()).padStart(2, '0')
-      const minutes = String(date.getMinutes()).padStart(2, '0')
-      const seconds = String(date.getSeconds()).padStart(2, '0')
-
-      // 拼接成目标格式
-      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
-    },
-
-    // 选择产线
-    selectFactory() {
-      // 模拟接口调用，实际使用假数据
-      console.log('选择产线', this.searchForm.factoryNo)
-    },
-
-    // 选择车间
-    selectWorkDept() {
-      console.log('选择车间', this.searchForm.workDeptNo)
-    },
-
-    // 选择隐患类型
-    selectFangerType() {
-      console.log('选择隐患类型', this.searchForm.fangerType)
-    },
-
-    // 选择隐患级别
-    selectFangerGrade() {
-      console.log('选择隐患级别', this.searchForm.fangerGrade)
-    },
-
-    // 选择上报节点
-    selectHndlStus() {
-      console.log('选择上报节点', this.searchForm.hndlStus)
-    },
-
-    // 选择处理状态
-    selectStatus() {
-      console.log('选择处理状态', this.searchForm.status)
-    },
-
-    // 选择超时状态
-    selectIsDelay() {
-      console.log('选择超时状态', this.searchForm.isDelay)
-    },
-
-    // 选择采集方式
-    selectIsAuto() {
-      console.log('选择采集方式', this.searchForm.sourceType)
-    },
-
-    // 日期变更
-    dateChange() {
-      console.log(
-        '日期变更',
-        this.searchForm.beginDate,
-        this.searchForm.endDate
-      )
-    },
-
-    // 查询
-    clickQuery() {
-      // 模拟查询接口调用，使用假数据
-      this.loading = true
-      setTimeout(() => {
-        this.loadMockData()
-        this.loading = false
-      }, 500)
-    },
-
-    // 上报分厂
-    clickReport() {
-      this.$message.success('上报分厂操作（模拟）')
-    },
-
-    // 上报事业部
-    clickApproval() {
-      this.$message.success('上报事业部操作（模拟）')
-    },
-
-    // 获取行键
-    getRowKey(row) {
-      return row.id
-    },
-
-    // 表格行样式
-    tableRowClassName({ row, rowIndex }) {
-      return ''
-    },
-
-    // 单元格样式
-    rowStyle({ row, column, rowIndex, columnIndex }) {
-      return {}
-    },
-
-    // 双击行
-    dbClick(row) {
-      console.log('双击行', row)
-    },
-
-    // 全选变更
-    handleAllSelectedChange(val) {
-      this.EquipDangers.forEach(row => {
-        row.checked = val
-      })
-      this.isIndeterminate = false
-    },
-
-    // 单选变更
-    handleSelectedChange() {
-      const checkedCount = this.EquipDangers.filter(row => row.checked).length
-      this.allSelected = checkedCount === this.EquipDangers.length
-      this.isIndeterminate =
-        checkedCount > 0 && checkedCount < this.EquipDangers.length
-    },
-
-    // 选择产线（表格内）
-    selectFactory2(row) {
-      console.log('表格内选择产线', row)
-    },
-
-    // 选择产线类别
-    selectFactoryGrade(row) {
-      console.log('选择产线类别', row)
-    },
-
-    // 选择车间（表格内）
-    selectWorkDept2(row) {
-      console.log('表格内选择车间', row)
-    },
-
-    // 选择专业
-    selectMajDelay(row) {
-      console.log('选择专业', row)
-    },
-
-    // 选择隐患类型（表格内）
-    selectFangerType2(row) {
-      console.log('表格内选择隐患类型', row)
-    },
-
-    // 选择是否完成
-    selectIsFinish(row) {
-      console.log('选择是否完成', row)
-    },
-
-    // 点击修改/确认
-    clickUpdate(row) {
-      if (row.isEditable) {
-        // 确认修改
-        row.isEditable = false
-        this.$message.success('修改已确认（模拟）')
-      } else {
-        // 进入编辑状态
-        row.isEditable = true
       }
     },
 
-    // 取消修改
+    handleCloseModify() {
+      this.dialogVisibleModify = false
+    },
+    dialogVisibleCancelModify() {
+      this.dialogVisibleModify = false
+      this.formInlineModify = {
+        expectTime: '',
+        updDetail: ''
+      }
+    },
+    clickDialogVisibleModify(formInlineModify) {
+      this.$refs[formInlineModify].validate(valid => {
+        if (valid) {
+          // this.addSaveModify()...this.updateExceptTime
+          this.updateExceptTime.updDetail = this.formInlineModify.updDetail
+          let obj = {
+            dangerNo: this.dangerNoPram,
+            expectTime: this.expectTimePram,
+            scheduleTime: this.scheduleTimePram,
+            userNo: this.userInfo.userNo,
+            userName: this.userInfo.userName,
+            reason: this.formInlineModify.updDetail
+          }
+          console.log('obj', obj)
+          this.changeTimeConfirm(obj)
+          console.log('验证通过')
+          this.dialogVisibleModify = false
+        } else {
+          console.log('失败')
+          return false
+        }
+      })
+    },
+    async changeTimeConfirm(obj) {
+      const res = await post(updatePlanDate, obj)
+      console.log(res)
+      if (res.success) {
+        this.$message.success('变更成功！')
+        this.query()
+      } else {
+        this.$message.error('变更失败！')
+      }
+    },
+    initBtn() {
+      let list = this.$store.getters['menu/getPageButtonPower']
+      console.log('btn列表', list)
+      list.forEach(item => {
+        if (item.name === '上报分厂') {
+          this.isShowFactory = true
+        }
+        if (item.name === '上报事业部') {
+          this.isShowBusi = true
+        }
+      })
+      console.log('roleList', this.roleList)
+      //车间，分厂的人查看非自己,技术员查询车间的
+      /*const rl = this.roleList.find(item => {
+        return (
+          item.roleName === '设备隐患管理员' ||
+          item.roleName === '设备隐患车间' ||
+          item.roleName === '设备隐患厂级' ||
+          item.roleName === '设备隐患技术'
+        )
+      })
+      console.log('rl', rl)
+      if (rl) {
+        this.searchForm.isSelf = 0
+      } else {
+        this.searchForm.isSelf = 1
+      }*/
+    },
+    //解析路由参数
+    async initParams() {
+      if (this.$route.query.type) {
+        switch (this.$route.query.type) {
+          case 'NOMAL': //一般隐患
+            this.searchForm.fangerGrade = 'A'
+            this.searchForm.fangerGradeName = '一般隐患'
+            this.searchForm.status = 'A'
+            break
+          case 'BIGGER': //较大隐患
+            this.searchForm.fangerGrade = 'B'
+            this.searchForm.fangerGradeName = '较大隐患'
+            this.searchForm.status = 'A'
+            break
+          case 'MAJOR': //重大隐患
+            this.searchForm.fangerGrade = 'C'
+            this.searchForm.fangerGradeName = '重大隐患'
+            this.searchForm.status = 'A'
+            break
+          case 'TOTAL': //合计
+            this.searchForm.fangerGrade = ''
+            this.searchForm.fangerGradeName = ''
+            this.searchForm.status = 'A'
+            break
+          case 'DEAL': //已处理
+            this.searchForm.hndlStus = 'E'
+            break
+          case 'NOTDEAL': //未处理
+            this.searchForm.status = 'A'
+            break
+        }
+        if (this.$route.query.factoryNo) {
+          if (this.$route.query.factoryNo !== '3') {
+            const fl = this.factoryList.find(
+              item => item.id === this.$route.query.factoryNo
+            )
+            if (fl) {
+              this.searchForm.factoryNo = fl.id
+              this.searchForm.factoryName = fl.name
+              this.searchForm.factoryCode = fl.orgCode
+              await this.queryWorkDept(this.searchForm.factoryCode, '1')
+            }
+            // this.searchForm.factoryNo = this.$route.query.factoryNo
+            // this.searchForm.factoryName = this.$route.query.factoryName
+            // //更新车间
+            // this.queryWorkDept(this.searchForm.factoryCode, '1')
+          }
+        }
+        if (this.$route.query.fangerGrade) {
+          this.searchForm.fangerGrade = this.$route.query.fangerGrade
+        }
+        if (this.$route.query.workDeptNo) {
+          this.searchForm.workDeptNo = this.$route.query.workDeptNo
+          this.searchForm.workDeptName = this.$route.query.workDeptName
+        }
+      } else {
+        //路由跳转时忽略用户参数
+        await this.initData()
+      }
+    },
+    async initData() {
+      const rl1 = this.roleList.find(item => {
+        return (
+          item.roleName === '设备隐患车间' ||
+          item.roleName === '设备隐患技术' ||
+          item.roleName === '设备隐患点检'
+        )
+      })
+      if (rl1) {
+        // hndlStus: '', //隐患处理状态 A:新建 B:车间已提交分厂 C:分厂已提交事业部 D:已申报事业部
+        this.searchForm.hndlStus = 'A'
+        this.searchForm.hndlStusName = '新建'
+      }
+      const rl2 = this.roleList.find(item => {
+        return item.roleName === '设备隐患厂级'
+      })
+      if (rl2) {
+        this.searchForm.hndlStus = 'B'
+        this.searchForm.hndlStusName = '已上报分厂'
+      }
+      const rl3 = this.roleList.find(item => {
+        return (
+          item.roleName === '设备隐患管理员' || item.name === '设备隐患事业部'
+        )
+      })
+      if (rl3) {
+        this.searchForm.hndlStus = 'C'
+        this.searchForm.hndlStusName = '已上报事业部'
+      }
+
+      //车间，技术，点检角色 状态未新增
+      //厂级为已上报分厂
+      //管理员为已上报事业部
+      const fl = this.factoryList.find(
+        item => item.orgCode === this.userInfo.factoryCode
+      )
+      if (fl) {
+        this.searchForm.factoryNo = fl.id
+        this.searchForm.factoryName = fl.name
+        this.searchForm.factoryCode = fl.orgCode
+        await this.queryWorkDept(this.searchForm.factoryCode, '3')
+      }
+      // this.searchForm.workDeptNo = this.userInfo.workDeptNo
+      // this.searchForm.workDeptName = this.userInfo.workDeptName
+    },
+    initHeader() {
+      //产线类别
+      let newStr4 = ''
+      this.factoryGradeList.forEach(item => {
+        newStr4 += item.name + ','
+      })
+      this.factoryGradeListHeader = [
+        '"' + newStr4.substring(0, newStr4.length - 1) + '"'
+      ]
+      // //专业类型
+      // let newStr = ''
+      // this.majDelayList.forEach(item => {
+      //   newStr += item.name + ','
+      // })
+      // this.majDelayListHeader = [
+      //   '"' + newStr.substring(0, newStr.length - 1) + '"'
+      // ]
+      // //隐患类型
+      // let newStr2 = ''
+      // this.fangerTypeList.forEach(item => {
+      //   newStr2 += item.name + ','
+      // })
+      // this.fangerTypeListHeader = [
+      //   '"' + newStr2.substring(0, newStr2.length - 1) + '"'
+      // ]
+      //隐患级别
+      let newStr5 = ''
+      this.fangerGradeList.forEach(item => {
+        newStr5 += item.name + ','
+      })
+      this.fangerGradeListHeader = [
+        '"' + newStr5.substring(0, newStr5.length - 1) + '"'
+      ]
+      //是否完成
+      let newStr6 = ''
+      this.yesOrNotList.forEach(item => {
+        newStr6 += item.name + ','
+      })
+      this.isFinishListHeader = [
+        '"' + newStr6.substring(0, newStr6.length - 1) + '"'
+      ]
+    },
+    dbClick(row, column, event) {
+      // this.dangerDesc = row.dangerDesc
+      // this.emergencyResponse = row.emergencyResponse
+      // this.hndlType = row.hndlType
+      // // {"dangerNo":"隐患编号"}
+      // let obj = {
+      //   dangerNo: row.dangerNo
+      // }
+      // this.queryHandleRecord(obj)
+      console.log('row', row)
+
+      this.dialogData = row
+      this.dialogVisible = true
+    },
+    handleAllSelectedChange(val) {
+      if (val) {
+        this.EquipDangers.forEach(item => {
+          item.checked = true
+        })
+      } else {
+        this.EquipDangers.forEach(item => {
+          item.checked = false
+        })
+      }
+    },
+    handleSelectedChange(val) {
+      console.log(val)
+      console.log(this.EquipDangers)
+    },
+    getRowKey(row) {
+      return row.id
+    },
+    changeExpectTime(val) {
+      console.log('111', moment(val).format('YYYY-MM-DD HH:mm:ss'))
+      this.updateExceptTime.expectTime = moment(val).format(
+        'YYYY-MM-DD HH:mm:ss'
+      )
+      this.scheduleTimePram = moment(val).format('YYYY-MM-DD HH:mm:ss')
+    },
+    changeTime(row) {
+      console.log('变更', row)
+      this.updateExceptTime = row
+      if (row.expectTime.length === 10) {
+        this.currentFormat = 'yyyy-MM-dd 00:00:00'
+        this.currentValueFormat = 'yyyy-MM-dd 00:00:00'
+      } else {
+        this.currentFormat = 'yyyy-MM-dd HH:mm:ss'
+        this.currentValueFormat = 'yyyy-MM-dd HH:mm:ss'
+      }
+      this.formInlineModify.expectTime = new Date(row.expectTime)
+      this.expectTimePram = row.expectTime
+      this.dangerNoPram = row.dangerNo
+      this.dialogVisibleModify = true
+    },
+    lookDetails(row) {
+      console.log('查看详情', row)
+      //变更时间-变更履历
+      this.tableData = row.resumeList
+      // // dangerDesc: '', // 隐患情况说明
+      // //   emergencyResponse: '', //应急预案
+      // //   hndlType: '', //处置方法
+      // //   workContentList: [], //处置过程跟踪
+      // this.dangerDesc = row.dangerDesc
+      // this.emergencyResponse = row.emergencyResponse
+      // this.hndlType = row.hndlType
+      // // {"dangerNo":"隐患编号"}
+      // let obj = {
+      //   dangerNo: row.dangerNo
+      // }
+      // this.queryHandleRecord(obj)
+      this.dialogData = row
+      this.dialogVisible = true
+    },
+    handleClose: done => {
+      done()
+    },
+    //产线
+    selectFactory(value) {
+      const fl = this.newFactoryList.find(item => item.id === value)
+      if (fl) {
+        this.searchForm.factoryName = fl.name
+        this.queryWorkDept(fl.orgCode, '1')
+      }
+      this.searchForm.workDeptNo = ''
+      this.searchForm.workDeptName = ''
+      // this.updateWorkDept(value, '1')
+    },
+    //车间
+    selectWorkDept(value) {
+      const wdl = this.newWorkDeptList.find(item => item.id === value)
+      if (wdl) {
+        this.searchForm.workDeptName = wdl.name
+      }
+    },
+    //类型
+    selectFangerType(value) {
+      const ftl = this.fangerTypeList.find(item => item.id === value)
+      if (ftl) {
+        this.searchForm.fangerTypeName = ftl.name
+      }
+    },
+    //级别
+    selectFangerGrade(value) {
+      const fgl = this.fangerGradeList.find(item => item.id === value)
+      if (fgl) {
+        this.searchForm.fangerGradeName = fgl.name
+      }
+    },
+    //状态
+    selectHndlStus(value) {
+      const hsl = this.hndlStusList.find(item => item.id === value)
+      if (hsl) {
+        this.searchForm.hndlStusName = hsl.name
+      }
+    },
+    //状态
+    selectStatus(value) {
+      const sl = this.statusList.find(item => item.id === value)
+      if (sl) {
+        this.searchForm.statusName = sl.name
+      }
+    },
+    //是否超时
+    selectIsDelay(value) {
+      const dl = this.delayList.find(item => item.id === value)
+      if (dl) {
+        this.searchForm.isDelayName = dl.name
+      }
+    },
+    //采集方式
+    selectIsAuto(value) {
+      const al = this.autoList.find(item => item.id === value)
+      if (al) {
+        this.searchForm.isAutoName = al.name
+      }
+    },
+    updateWorkDept(factoryNo, type) {
+      //切换车间数据
+      let tempList = []
+      switch (factoryNo) {
+        case '32': //中厚板卷厂
+          tempList = [
+            {
+              id: '6',
+              name: '机修车间'
+            },
+            {
+              id: '7',
+              name: '电修车间'
+            },
+            {
+              id: '9',
+              name: '精整车间'
+            }
+          ]
+          break
+        case '38': //宽厚板厂
+          tempList = [
+            {
+              id: '6',
+              name: '机修车间'
+            },
+            {
+              id: '7',
+              name: '电修车间'
+            },
+            {
+              id: '8',
+              name: '热处理车间'
+            },
+            {
+              id: '9',
+              name: '精整车间'
+            }
+          ]
+          break
+        case '66': //中板厂
+          tempList = [
+            {
+              id: '6',
+              name: '机修车间'
+            },
+            {
+              id: '7',
+              name: '电修车间'
+            },
+            {
+              id: '9',
+              name: '精整车间'
+            },
+            {
+              id: '10',
+              name: '产品车间'
+            }
+          ]
+          break
+        case '73': //第一炼钢厂
+          tempList = [
+            {
+              id: '1',
+              name: '原料车间'
+            },
+            {
+              id: '2',
+              name: '转炉车间'
+            },
+            {
+              id: '3',
+              name: '精炼车间'
+            },
+            {
+              id: '4',
+              name: '连铸车间'
+            },
+            {
+              id: '5',
+              name: '运行车间'
+            }
+          ]
+          break
+        case '84': //金石材料厂
+          tempList = [
+            {
+              id: '13',
+              name: '渣处理车间'
+            },
+            {
+              id: '14',
+              name: '石灰车间'
+            }
+          ]
+          break
+        case '87': //金润智能制造厂
+          tempList = [
+            {
+              id: '11',
+              name: '机加工车间'
+            },
+            {
+              id: '12',
+              name: '后道工序车间'
+            }
+          ]
+          break
+      }
+      if (type === '1') {
+        this.newWorkDeptList = []
+        this.newWorkDeptList.push(...tempList)
+        console.log(this.newWorkDeptList)
+      } else if (type === '2') {
+        this.newWorkDeptList2 = []
+        this.newWorkDeptList2.push(...tempList)
+      }
+    },
+    //产线
+    selectFactory2(row) {
+      const fl = this.factoryList.find(item => item.id === row.factoryNo)
+      if (fl) {
+        row.factoryName = fl.name
+        this.queryWorkDept(fl.orgCode, '2')
+      }
+      row.workDeptNo = ''
+      row.workDeptName = ''
+      // this.updateWorkDept(row.factoryNo, '2')
+    },
+    //产线类别
+    selectFactoryGrade(row) {
+      for (let i = 0; i < this.factoryGradeList.length; i++) {
+        if (this.factoryGradeList[i].id === row.factoryGrade) {
+          row.factoryGradeName = this.factoryGradeList[i].name
+          // this.$set(row, 'budgetTypeName', this.costCategories[i].label)
+        }
+      }
+    },
+    //车间
+    selectWorkDept2(row) {
+      console.log('车间', row)
+      const wdl = this.newWorkDeptList2.find(item => item.id === row.workDeptNo)
+      if (wdl) {
+        row.workDeptName = wdl.name
+      }
+    },
+    //类型
+    selectFangerType2(row) {
+      const ftl = this.fangerTypeList.find(item => item.id === row.fangerType)
+      if (ftl) {
+        row.fangerTypeName = ftl.name
+      }
+    },
+    //级别
+    selectFangerGrade2(row) {
+      const fgl = this.fangerGradeList.find(item => item.id === row.fangerGrade)
+      if (fgl) {
+        row.fangerGradeName = fgl.name
+      }
+    },
+    //专业
+    selectMajDelay(row) {
+      const mdl = this.majDelayList.find(item => item.id === row.majDelay)
+      if (mdl) row.majDelayName = mdl.name
+    },
+    //选择是否完成
+    selectIsFinish(row) {
+      console.log(row)
+      row.disableHandleType = row.isFinish !== 'Y'
+      for (let i = 0; i < this.yesOrNotList.length; i++) {
+        if (this.yesOrNotList[i].id === row.isFinish) {
+          row.isFinishName = this.yesOrNotList[i].name
+        }
+      }
+    },
+    dateChange(params) {
+      console.log(params)
+      this.searchForm.beginDate = params[0]
+      this.searchForm.endDate = params[1]
+    },
+    /*----分页-----*/
+    pageSizeChange(val) {
+      this.searchForm.pageSize = val
+      this.query()
+    },
+    currentPageChange(val) {
+      this.searchForm.pageIndex = val
+      this.$nextTick(() => {
+        this.$refs.multipleTable.bodyWrapper.scrollTop = 0
+      })
+      this.query()
+    },
+    //点击选中数据
+    handleSelectChange(selection) {
+      this.selectChangeList = selection
+      console.log(selection)
+    },
+    //选择产线
+    selectTableFactory(row) {
+      for (let i = 0; i < this.factoryList.length; i++) {
+        if (this.factoryList[i].id === row.factoryNo) {
+          row.factoryName = this.factoryList[i].name
+        }
+      }
+    },
+    //选择产线级别
+    selectTableFactoryGrade(row) {
+      for (let i = 0; i < this.factoryGradeList.length; i++) {
+        if (this.factoryGradeList[i].id === row.factoryGrade) {
+          row.factoryGradeName = this.factoryGradeList[i].name
+        }
+      }
+    },
+    //下载Excel
+    /*downloadExcel() {
+      this.equipDangersDataValidation[0].dataValidation.formulae = this.factoryListHeader
+      this.equipDangersDataValidation[1].dataValidation.formulae = this.factoryGradeListHeader
+      this.equipDangersDataValidation[2].dataValidation.formulae = this.majDelayListHeader
+      this.equipDangersDataValidation[4].dataValidation.formulae = this.fangerTypeListHeader
+      this.equipDangersDataValidation[5].dataValidation.formulae = this.fangerGradeListHeader
+      this.equipDangersDataValidation[8].dataValidation.formulae = this.isFinishListHeader
+      if (this.selectChangeList.length > 0) {
+        import('@/utils/excelJsUtil').then(excel => {
+          excel.export_to_excel(
+            '历史隐患信息模板',
+            '历史隐患信息表',
+            this.equipDangersHeader,
+            this.selectChangeList,
+            this.equipDangersDataValidation
+          )
+        })
+      } else {
+        import('@/utils/excelJsUtil').then(excel => {
+          excel.export_to_excel(
+            '历史隐患信息模板',
+            '历史隐患信息表',
+            this.equipDangersHeader,
+            this.EquipDangers,
+            this.equipDangersDataValidation
+          )
+        })
+      }
+    },*/
+    clickQuery() {
+      this.loading = true
+      this.searchForm.pageIndex = 1
+      this.query()
+    },
+    //车间上报分厂
+    clickReport() {
+      let list = []
+      if (this.selectChangeList.length > 0) {
+        list = this.selectChangeList
+      } else {
+        list = this.EquipDangers
+      }
+      console.log(list)
+      let isForbidden = false
+      list.forEach(item => {
+        if (item.hndlStus !== 'A') {
+          isForbidden = true
+        }
+      })
+      if (isForbidden) {
+        this.$message.warning('存在非新建状态的数据,无法提交！')
+        return
+      }
+      // list.forEach(item => {
+      //   item.hndlStus = 'B'
+      // })
+      let obj = {
+        EquipDangers: list,
+        action: 'submit',
+        userNo: this.userNo
+      }
+      this.batchUpdate(obj)
+    },
+    //分厂上报事业部
+    clickApproval() {
+      let list = []
+      if (this.selectChangeList.length > 0) {
+        list = this.selectChangeList
+      } else {
+        list = this.EquipDangers
+      }
+      console.log(list)
+      let isForbidden = false
+      list.forEach(item => {
+        if (item.hndlStus !== 'B') {
+          isForbidden = true
+        }
+      })
+      if (isForbidden) {
+        this.$message.warning('存在非上报分厂状态的数据,无法提交！')
+        return
+      }
+      // list.forEach(item => {
+      //   item.hndlStus = 'C'
+      // })
+      let obj = {
+        EquipDangers: list,
+        action: 'submit_T',
+        userNo: this.userNo
+      }
+      this.batchUpdate(obj)
+    },
+    //修改-新增处置过程
+    clickUpdate(row) {
+      if (row.hndlStus === 'A') {
+        if (row.isEditable) {
+          //可编辑-->不可编辑
+          row.isEditable = false
+          //可编辑-->修改接口
+          // 修改人员
+          row.updUserNo = this.userNo
+          let obj = {
+            EquipDangers: [row],
+            action: 'update',
+            userNo: this.userNo
+          }
+          this.batchUpdate(obj)
+        } else {
+          //不可编辑-->可编辑
+          row.isEditable = true
+        }
+      } else {
+        this.$message.warning('非新增状态不可修改')
+      }
+    },
+    //取消修改
     clickCancel(row) {
       row.isEditable = false
-      this.$message.info('已取消修改')
     },
-
-    // 退回
+    //退回
     clickBack(row) {
-      this.$confirm('确定要退回这条记录吗？', '提示', {
+      if (row.hndlStus === 'B') {
+        //车间退回调用删除
+        this.clickDelete(row)
+      } else if (row.hndlStus === 'C') {
+        //事业部退回调用修改
+        let obj = {
+          EquipDangers: [row],
+          action: 'back',
+          userNo: this.userNo
+        }
+        this.batchUpdate(obj)
+      } else {
+        this.$message.error(`状态为:${row.hndlStus},无法操作!`)
+      }
+    },
+    //删除
+    clickDelete(row) {
+      //TODO 删除人员 权限管控
+      this.$confirm('此操作将删除该数据, 是否继续?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       })
         .then(() => {
-          this.$message.success('退回成功（模拟）')
+          let obj = {
+            EquipDangers: [row.dangerNo],
+            userNo: this.userNo
+          }
+          this.batchDelete(obj)
         })
         .catch(() => {
-          this.$message.info('已取消退回')
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          })
         })
     },
 
-    // 查看详情
-    lookDetails(row) {
-      // 模拟获取详情接口，使用假数据
-      this.dialogData = {
-        ...row,
-        handles: [
-          {
-            id: 'H001',
-            creDateTime: this.formatDate(new Date()),
-            creUserNo: row.creUserNo,
-            creUserName: row.creUserName,
-            workContent: '初步检查，确认隐患存在'
-          },
-          {
-            id: 'H002',
-            creDateTime: this.formatDate(new Date(Date.now() - 3600000)),
-            creUserNo: 'U002',
-            creUserName: '处理员',
-            workContent: '正在制定处理方案'
+    /*----------接口--------------*/
+    //查询车间
+    async queryWorkDept(orgCode, type) {
+      const res = await post(queryWorkDeptInfo, { orgCode: orgCode })
+      if (res.success) {
+        let tempList = []
+        res.data.forEach(item => {
+          tempList.push({
+            id: item.orgCode,
+            name: item.orgAllName
+          })
+        })
+        tempList.forEach(item => {})
+        if (type === '1' || type === '3') {
+          this.newWorkDeptList = []
+          this.newWorkDeptList.push(...tempList)
+          if (type === '3') {
+            const nwdl = this.newWorkDeptList.find(
+              item => item.id === this.userInfo.workDeptNo
+            )
+            if (nwdl) {
+              this.searchForm.workDeptNo = nwdl.id
+              this.searchForm.workDeptName = nwdl.name
+            }
           }
-        ]
-      }
-      this.dialogVisible = true
-
-      // 模拟获取变更履历
-      this.tableData = [
-        {
-          expectTime: this.formatDate(new Date(Date.now() - 86400000 * 2)),
-          scheduleTime: this.formatDate(new Date(Date.now() - 86400000)),
-          userNo: 'U003',
-          userName: '管理员',
-          reason: '设备采购延迟',
-          submitDate: this.formatDate(new Date(Date.now() - 86400000))
+        } else if (type === '2') {
+          this.newWorkDeptList2 = []
+          this.newWorkDeptList2.push(...tempList)
         }
+      }
+    },
+    //专业类别
+    async findMajDelayList() {
+      const { data: res } = await post(findAllByTableId, {
+        tableId: 'FAULTSPECI'
+      })
+      this.majDelayList = []
+      res.forEach(item => {
+        this.majDelayList.push({
+          id: item.oneCol,
+          name: item.twoCol
+        })
+      })
+      //专业类型
+      let newStr = ''
+      this.majDelayList.forEach(item => {
+        newStr += item.name + ','
+      })
+      this.majDelayListHeader = [
+        '"' + newStr.substring(0, newStr.length - 1) + '"'
       ]
     },
-
-    // 变更时间
-    changeTime(row) {
-      console.log('row', row)
-      this.dangerNoPram = row.id
-      this.expectTimePram = row.expectTime
-      this.formInlineModify.expectTime = row.expectTime
-      this.formInlineModify.updDetail = ''
-      this.dialogVisibleModify = true
-    },
-
-    // 删除
-    clickDelete(row) {
-      this.$confirm('确定要删除这条记录吗？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'danger'
+    //下拉框获取数据
+    async findSelect() {
+      // //产线
+      // const { data: res } = await post(findAllByTableId, {
+      //   tableId: 'FACTORY',
+      //   col: '3',
+      //   data: '3'
+      // })
+      // this.factoryList = []
+      // res.forEach(item => {
+      //   this.factoryList.push({
+      //     id: item.oneCol,
+      //     name: item.twoCol,
+      //     orgCode: item.sixCol
+      //   })
+      //   this.newFactoryList.push({
+      //     id: item.oneCol,
+      //     name: item.twoCol,
+      //     orgCode: item.sixCol
+      //   })
+      // })
+      // this.newFactoryList.push({
+      //   id: '3',
+      //   name: '事业部',
+      //   orgCode: ''
+      // })
+      // let newStr3 = ''
+      // this.factoryList.forEach(item => {
+      //   newStr3 += item.name + ','
+      // })
+      // this.factoryListHeader = [
+      //   '"' + newStr3.substring(0, newStr3.length - 1) + '"'
+      // ]
+      //隐患类型
+      const { data: res2 } = await post(findAllByTableId, {
+        tableId: 'FANGERTYPE'
       })
-        .then(() => {
-          // 模拟删除接口
-          this.EquipDangers = this.EquipDangers.filter(
-            item => item.id !== row.id
-          )
-          this.total--
-          this.$message.success('删除成功（模拟）')
+      this.fangerTypeList = []
+      res2.forEach(item => {
+        this.fangerTypeList.push({
+          id: item.oneCol,
+          name: item.twoCol
         })
-        .catch(() => {
-          this.$message.info('已取消删除')
-        })
+      })
+      let newStr4 = ''
+      this.fangerTypeList.forEach(item => {
+        newStr4 += item.name + ','
+      })
+      this.fangerTypeListHeader = [
+        '"' + newStr4.substring(0, newStr4.length - 1) + '"'
+      ]
     },
-
-    // 转故障
-    TurnHiddenDangers(row) {
-      if (row.transFal === 1) {
-        this.$message.info('已转故障，不可重复操作')
-        return
+    //查询数据
+    async query() {
+      console.log('this.searchForm.isSelf', this.searchForm.isSelf)
+      if (this.searchForm.isSelf === 1) {
+        this.searchForm.userNo = this.userInfo.userNo
+        console.log('this.userNo', this.userInfo.userNo)
+      } else {
+        this.searchForm.userNo = ''
       }
-
-      this.$confirm('确定要转为故障吗？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'info'
-      })
-        .then(() => {
-          // 模拟转故障接口
-          row.transFal = 1
-          this.$message.success('已转为故障（模拟）')
-        })
-        .catch(() => {
-          this.$message.info('已取消转故障')
-        })
-    },
-
-    // 页码大小变更
-    pageSizeChange(val) {
-      this.searchForm.pageSize = val
-      this.searchForm.pageIndex = 1
-      this.clickQuery()
-    },
-
-    // 当前页码变更
-    currentPageChange(val) {
-      this.searchForm.pageIndex = val
-      this.clickQuery()
-    },
-
-    // 关闭变更对话框
-    handleCloseModify() {
-      this.dialogVisibleModify = false
-    },
-
-    // 取消变更
-    dialogVisibleCancelModify() {
-      this.dialogVisibleModify = false
-    },
-
-    // 确认变更
-    clickDialogVisibleModify(formName) {
-      this.$refs[formName].validate(valid => {
-        if (valid) {
-          // 模拟变更时间接口
-          this.EquipDangers.forEach(row => {
-            if (row.id === this.dangerNoPram) {
-              row.expectTime = this.formInlineModify.expectTime
+      //TODO 根据权限查询
+      //隐患处理状态 A:新建 B:车间已提交分厂 C:分厂已提交事业部 D:已申报事业部
+      //技术员角色:查询A,可修改
+      //车间主任角色:查询A，可提交分厂
+      //分厂领导角色:查询B，可提交事业部
+      const res = await post(findAllDangerInfoList, this.searchForm)
+      console.log('res1', res)
+      this.tableList = []
+      this.total = 0
+      if (res.success) {
+        res.data.tlist.forEach(item => {
+          //产线
+          const fl = this.factoryList.find(cell => cell.id === item.factoryNo)
+          if (fl) item.factoryName = fl.name
+          //产线类别
+          const fg = this.factoryGradeList.find(
+            cell => cell.id === item.factoryGrade
+          )
+          if (fg) item.factoryGradeName = fg.name
+          //专业
+          const mdl = this.majDelayList.find(cell => cell.id === item.majDelay)
+          if (mdl) item.majDelayName = mdl.name
+          // //车间
+          // const wdl = this.workDeptList.find(
+          //   cell => cell.id === item.workDeptNo
+          // )
+          // if (wdl) item.workDeptName = wdl.name
+          if (item.workDeptNo === '2') {
+            item.workDeptName = '转炉车间'
+          } else if (item.workDeptNo === '11') {
+            item.workDeptName = '机加工车间'
+          } else if (item.workDeptNo === '12') {
+            item.workDeptName = '后道工序车间'
+          }
+          //隐患类型
+          const ftl = this.fangerTypeList.find(
+            cell => cell.id === item.fangerType
+          )
+          if (ftl) item.fangerTypeName = ftl.name
+          //隐患级别
+          const fgl = this.fangerGradeList.find(
+            cell => cell.id === item.factoryGrade
+          )
+          if (fgl) item.fangerGradeName = fgl.name
+          //是否完成
+          if (item.handles && item.handles.length > 0) {
+            const yonl = this.yesOrNotList.find(
+              cell => cell.id === item.handles[item.handles.length - 1].isFinish
+            )
+            if (yonl) {
+              item.isFinishName = yonl.name
+              item.isFinish = yonl.id
+            } else {
+              item.isFinishName = this.yesOrNotList[1].name
+              item.isFinish = this.yesOrNotList[1].id
             }
-          })
-          this.dialogVisibleModify = false
-          this.$message.success('变更成功（模拟）')
-        } else {
-          return false
-        }
-      })
+            let index = item.handles.length - 1
+            item.workContent =
+              // item.handles[index].creUserNo + '\n'
+              item.handles[index].workContent + '\n'
+            item.handles[index].creDate + ' '
+            item.handles[index].creDateTime
+            //处置方法
+            item.hndlType = item.handles[index].hndlType
+          } else {
+            item.isFinishName = this.yesOrNotList[1].name
+            item.isFinish = this.yesOrNotList[1].id
+            item.workContent = ''
+            item.hndlType = ''
+          }
+          //expectTime: "1970-01-01T00:00:43.426+00:00"
+          if (item.expectTime && item.expectTime.length > 19) {
+            item.expectTime = item.expectTime
+              .substring(0, 19)
+              .replace(/T/g, ' ')
+          }
+          //判断颜色
+          //未处理颜色判断
+          if (item.handles.length === 0) {
+            if (
+              dateToNowH(item.expectTime.substring(0, 10) + ' 23:59:59') < 0
+            ) {
+              item.color = 'red'
+            } else if (
+              dateToNowH(item.expectTime.substring(0, 10) + ' 23:59:59') < 24
+            ) {
+              item.color = 'yellow'
+            } else {
+              item.color = 'normal'
+            }
+          } else {
+            //已处理颜色判断
+            const length = item.handles.length
+            const isFinishItem = item.handles.find(
+              info => info.isFinish === 'Y'
+            )
+            //已处理且已完成 完成时间与期望时间对比
+            if (isFinishItem) {
+              //处理完成时间>期望时间，超时红色 2022-01-11 23:59:59
+              if (
+                dateCompare(
+                  isFinishItem.creDateTime,
+                  item.expectTime.substring(0, 10) + ' 23:59:59'
+                )
+              ) {
+                item.color = 'red'
+              } else {
+                item.color = 'normal'
+              }
+            } else {
+              //已处理但未完成 计划处理时间与期望时间对比
+              if (
+                dateToNowH(item.expectTime.substring(0, 10) + ' 23:59:59') < 0
+              ) {
+                item.color = 'red'
+              } else if (
+                dateToNowH(item.expectTime.substring(0, 10) + ' 23:59:59') < 24
+              ) {
+                item.color = 'yellow'
+              } else {
+                item.color = 'normal'
+              }
+            }
+          }
+          //判断状态
+          const hsl = this.hndlStusList.find(cell => cell.id === item.hndlStus)
+          if (hsl) item.hndlStusName = hsl.name
+          //判断隐患单处理状态
+          const sl = this.statusList.find(cell => cell.id === item.status)
+          if (sl) item.statusName = sl.name
+          item.checked = false
+          //设置不可编辑
+          item.isDisable = true
+          item.isEditable = false
+          item.disableHandleType = item.isFinish !== 'Y'
+        })
+        this.EquipDangers = res.data.tlist
+        this.total = res.data.total
+        this.loading = false
+        console.log('this.EquipDangers', this.EquipDangers)
+      }
     },
-
-    // 变更预期时间
-    changeExpectTime(val) {
-      // console.log('val', val)
-      // this.updateExceptTime.expectTime = this.convertTimeFormat(val)
-      // console.log('变更预期时间', this.formInlineModify.expectTime)
+    //批量修改
+    async batchUpdate(obj) {
+      const res = await post(batchUpdateDangerInfoList, obj)
+      console.log(res)
+      if (res.success) {
+        this.$message.success('操作成功！')
+        this.query()
+      } else {
+        this.$message.error('操作失败！')
+      }
     },
-
-    // 关闭详情对话框
-    handleClose() {
-      this.dialogVisible = false
+    //批量删除
+    async batchDelete(obj) {
+      const res = await post(batchDeleteDangerInfoList, obj)
+      console.log(res)
+      if (res.success) {
+        this.$message.success('删除成功！')
+        this.query()
+      } else {
+        this.$message.error('删除失败！' + res.success)
+      }
+    },
+    //查询处置过程
+    async queryHandleRecord(obj) {
+      const res = await post(findAllDangerHandleRecord, obj)
+      console.log(res)
+      if (res.success) {
+        //处置过程跟踪
+        this.workContentList = res.data
+      }
+    },
+    tableRowClassName({ row }) {
+      const now = new Date()
+      const planDate = new Date(row.expectTime)
+      const isOverdue = now > planDate
+      const isNotCompleted = row.isFinish === 'N'
+      // console.log('aaaa', isOverdue)
+      // console.log('bbbb', isOverdue && isNotCompleted)
+      if (isOverdue && isNotCompleted) {
+        return 'warning-row'
+      }
+      return ''
+    },
+    //新增处置过程
+    async createHandleRecord(obj) {
+      const res = await post(addDangerHandleRecord, obj)
+      console.log(res)
+      if (res.success) {
+        this.query()
+      }
+    },
+    rowStyle({ row, rowIndex }) {
+      // console.log('高亮', row)
+      let styleGrey = {
+        'background-color': '#ffffcc'
+      }
+      if (row.resumeList !== null) {
+        return styleGrey
+      } else {
+        return {}
+      }
     }
   }
 }
 </script>
 
 <style scoped lang="less">
-/deep/.el-dialog {
-  padding: 0;
+/deep/.warning-row {
+  background-color: #e58080;
 }
-/* 分页选中项样式修改 */
-::v-deep .el-pager li.active {
-  color: #35a03b !important; /* 绿色文字 */
-  //border-color: #42b983 !important; /* 绿色边框 */
+//表格外层卡片样式
+.CardTable {
+  margin-top: 16px;
+  box-shadow: 0px 2px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+  box-sizing: border-box;
 }
-//变更时间组件样式
+
+//表格样式
+.TableWidth {
+  width: 98%;
+  position: relative;
+  margin-left: 15px;
+  margin-top: 14px;
+}
+
+//分页
+.pagPath {
+  margin-top: 14px;
+  margin-left: 15px;
+  margin-bottom: 7px;
+}
+
+//隐患级别颜色圆点
+.dotClass {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-left: 10px; //这个用于圆点居中
+}
+
+//序号1
+.num1 {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid #303133;
+  text-align: center;
+  margin-left: 20px;
+  margin-top: 5px;
+}
+
+.el-step {
+  white-space: pre;
+}
+
+.textStyleNormal {
+  color: grey;
+}
+
+.textStyleYellow {
+  color: #ffa958;
+}
+
+.textStyleRed {
+  color: #f56c6c;
+}
+/deep/.el-table .el-table__fixed {
+  height: auto !important;
+  bottom: 11px !important;
+  &::before {
+    background-color: transparent;
+  }
+}
+/deep/.el-table__body-wrapper::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+/deep/.el-scrollbar__wrap::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.headStyle {
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 18px;
+  color: #606266;
+  display: inline-block;
+}
 /deep/.el-input__icon {
   height: 100%;
   width: 25px;
   text-align: center;
   transition: all 0.3s;
   line-height: 30px;
-}
-.contentBox {
-  padding: 15px;
-}
-
-.CardTable {
-  margin-top: 15px;
-}
-
-.pagPath {
-  text-align: right;
-  margin-top: 15px;
-}
-
-.dotClass {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  margin-right: 5px;
-}
-
-.textStyleRed {
-  color: #f56c6c;
-  font-weight: bold;
-}
-
-.textStyleYellow {
-  color: #ffa958;
-  font-weight: bold;
-}
-
-.headStyle {
-  font-weight: 400;
-  font-size: 18px;
-  color: #303133;
 }
 </style>
