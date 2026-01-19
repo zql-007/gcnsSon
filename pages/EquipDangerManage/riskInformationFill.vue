@@ -57,7 +57,7 @@
           v-loading="loading"
           ref="multipleTable"
           :data="formInline.EquipDangers"
-          max-height="700px"
+          height="694px"
           lazy
           element-loading-text="拼命加载中"
           element-loading-spinner="el-icon-loading"
@@ -401,7 +401,7 @@ import {
 } from '@/lib/EquipPrecisManage/RiskManageApi'
 
 export default {
-  // layout: 'test',
+  layout: 'test',
   name: 'riskManagement-riskInformationFill',
   data() {
     return {
@@ -1435,6 +1435,16 @@ export default {
 
 <style scoped lang="less">
 .contentBox {
+  height: 100vh; /* 使用视口高度 */
+  //height: 100%;
+  width: 100%;
+  padding: 16px 24px 24px 24px;
+  box-sizing: border-box; /* 确保padding包含在高度内 */
+  //overflow-x: auto;
+  //overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  background-color: #f4f4f6;
   .el-form-header {
     display: flex;
     justify-content: flex-end;

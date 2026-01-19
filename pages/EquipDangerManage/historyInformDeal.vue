@@ -762,7 +762,7 @@ import {
 } from '@/utils/dateUtil'
 
 export default {
-  // layout: 'test',
+  layout: 'test',
   name: 'HistoryRiskInformation',
   data() {
     return {
@@ -2225,6 +2225,18 @@ export default {
 </script>
 
 <style scoped lang="less">
+.contentBox {
+  height: 100vh; /* 使用视口高度 */
+  //height: 100%;
+  width: 100%;
+  padding: 16px 24px 24px 24px;
+  box-sizing: border-box; /* 确保padding包含在高度内 */
+  //overflow-x: auto;
+  //overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  background-color: #f4f4f6;
+}
 //表格外层卡片样式
 .CardTable {
   margin-top: 16px;

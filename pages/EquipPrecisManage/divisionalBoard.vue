@@ -245,7 +245,7 @@ import {
 // import { post } from '@/lib/Util'
 
 export default {
-  // layout: 'test',
+  layout: 'test',
   name: 'EquipPrecisManage-divisionalBoard',
   components: {
     tasilyEcharts
@@ -642,7 +642,16 @@ export default {
 
 <style scoped lang="less">
 .contentBox {
-  padding: 15px;
+  height: 100vh; /* 使用视口高度 */
+  //height: 100%;
+  width: 100%;
+  padding: 16px 24px 24px 24px;
+  box-sizing: border-box; /* 确保padding包含在高度内 */
+  //overflow-x: auto;
+  //overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  background-color: #f4f4f6;
 }
 /deep/.el-date-editor .el-range__icon {
   margin-left: 1px;

@@ -1127,7 +1127,7 @@ import {
 import moment from 'moment'
 
 export default {
-  // layout: 'test',
+  layout: 'test',
   name: 'HistoryDangerInformation',
   data() {
     return {
@@ -2804,6 +2804,18 @@ export default {
 </script>
 
 <style scoped lang="less">
+.contentBox {
+  height: 100vh; /* 使用视口高度 */
+  //height: 100%;
+  width: 100%;
+  padding: 16px 24px 24px 24px;
+  box-sizing: border-box; /* 确保padding包含在高度内 */
+  //overflow-x: auto;
+  //overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  background-color: #f4f4f6;
+}
 /deep/.warning-row {
   background-color: #e58080;
 }

@@ -441,7 +441,7 @@ import {
   iomPrecisionManagementController_trendAnalysis
 } from '@/lib/EquipPrecisManage/ApiURL01'
 export default {
-  // layout: 'test',
+  layout: 'test',
   name: 'EquipPrecisManage-informat',
   components: {
     tasilyEcharts,
@@ -1193,11 +1193,16 @@ input::-webkit-outer-spin-button {
   -moz-appearance: textfield !important;
 }
 .contentBox {
-  height: 100%;
+  height: 100vh; /* 使用视口高度 */
+  //height: 100%;
   width: 100%;
-  //padding: 16px 24px 24px 24px;
-  overflow-x: auto;
-  overflow-y: auto;
+  padding: 16px 24px 24px 24px;
+  box-sizing: border-box; /* 确保padding包含在高度内 */
+  //overflow-x: auto;
+  //overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  background-color: #f4f4f6;
 }
 /deep/.el-form.el-form--inline {
   height: 36px;

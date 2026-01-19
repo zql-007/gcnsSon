@@ -161,7 +161,7 @@
               :y-axis="lineOption1.yAxis"
               :series="lineOption1.series"
               :data-zoom="lineOption1.dataZoom"
-              :_height="'357px'"
+              :_height="'371px'"
               @chart-click-data="clickEchartsBusiness"
             />
           </div>
@@ -211,7 +211,7 @@
               :legend="lineOption2.legend"
               :color="lineOption2.color"
               :series="lineOption2.series"
-              :_height="'310px'"
+              :_height="'350px'"
               @chart-click-data="clickEchartsAuto"
             />
           </div>
@@ -310,8 +310,7 @@
           </div>
           <el-table
             :data="tableDataRisk"
-            height="280"
-            max-height="205"
+            height="245"
             class="TableWidth"
           >
             <el-table-column
@@ -460,7 +459,7 @@ import {
   getYearFirstDayLast
 } from '@/utils/dateUtil'
 export default {
-  // layout: 'test',
+  layout: 'test',
   name: 'FactoryBoard3',
   components: {
     tasilyEcharts
@@ -2292,6 +2291,18 @@ export default {
 </script>
 
 <style scoped lang="less">
+.contentBox {
+  height: 100vh; /* 使用视口高度 */
+  //height: 100%;
+  width: 100%;
+  padding: 16px 24px 24px 24px;
+  box-sizing: border-box; /* 确保padding包含在高度内 */
+  //overflow-x: auto;
+  //overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  background-color: #f4f4f6;
+}
 //时间组件样式
 /deep/.el-form.el-form--inline {
   height: 28px;

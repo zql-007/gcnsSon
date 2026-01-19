@@ -1123,7 +1123,7 @@ import {
 import UserSelect1 from '@/components/business/userSelect1'
 import { resourceListNoPage } from '~/lib/system'
 export default {
-  // layout: 'test',
+  layout: 'test',
   name: 'EquipPrecisManage-standard',
   components: {
     UserSelect1
@@ -1850,11 +1850,16 @@ export default {
 </style>
 <style scoped lang="less">
 .contentBox {
-  height: 100%;
+  height: 100vh; /* 使用视口高度 */
+  //height: 100%;
   width: 100%;
-  //padding: 16px 24px 24px 24px;
-  overflow-x: auto;
-  overflow-y: auto;
+  padding: 16px 24px 24px 24px;
+  box-sizing: border-box; /* 确保padding包含在高度内 */
+  //overflow-x: auto;
+  //overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  background-color: #f4f4f6;
 }
 /deep/.el-form.el-form--inline {
   height: 36px;
