@@ -460,7 +460,7 @@ export default {
       this.departmentList = respB
     },
     findAll() {
-      this.loading = true
+      this.loading = false
       // this.pageIndex = val
       if (this.form.measureTime === null) {
         this.form.measureTime = ''
@@ -615,7 +615,7 @@ export default {
     },
     //单项提交
     submitOnly() {
-      this.loading = true
+      this.loading = false
       post(
         iomPrecisionManagementController_updateForgetMItem,
         this.leakForm
