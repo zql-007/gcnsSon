@@ -1,6 +1,7 @@
 <template>
   <div class="contentBox">
-    <el-card class="CardTable">
+    <el-card
+      class="CardTable">
       <div style="margin-left: 20px">
         <span class="headStyle">{{ factoryName }}隐患跟踪统计表</span>
         <el-form
@@ -2292,15 +2293,17 @@ export default {
 
 <style scoped lang="less">
 .contentBox {
-  height: 100vh; /* 使用视口高度 */
-  //height: 100%;
+  /* 移除或注释掉这两行 */
+  /* display: flex; */
+  /* flex-direction: column; */
+
+  /* 改为 auto 或 auto-scroll */
+  height: auto;
+  min-height: 100vh; /* 至少占满视口 */
   width: 100%;
   padding: 16px 24px 24px 24px;
-  box-sizing: border-box; /* 确保padding包含在高度内 */
-  //overflow-x: auto;
-  //overflow-y: auto;
-  display: flex;
-  flex-direction: column;
+  box-sizing: border-box;
+  overflow-y: auto; /* 允许滚动 */
   background-color: #f4f4f6;
 }
 //时间组件样式
