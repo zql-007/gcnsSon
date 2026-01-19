@@ -41,8 +41,8 @@ export default {
   data: () => {
     return {
       isCollapse: true,
-      menuList: [],
-      userMenuList: [
+      menuList: []
+      /*userMenuList: [
         {
           code: 'RES_296539866827722752_002-001',
           deskIcon: '48d67c3e-f3f6-487e-94b1-679a78b43463',
@@ -322,14 +322,14 @@ export default {
             }
           ]
         }
-      ]
+      ]*/
     }
   },
   computed: {
     ...mapState('menu', [
-      // 'userMenuList',
+      'userMenuList',
       'menuCollapse',
-      // 'menuStore',
+      'menuStore',
       'currentPageId',
       'currentPageName'
     ]),
@@ -337,10 +337,10 @@ export default {
       const route = this.$route
       const { fullPath } = route
       return filterUrl(fullPath)
+    },
+    userMenuList() {
+      return this.menuStore ? this.menuStore[0].children : []
     }
-    // userMenuList() {
-    //   return this.menuStore ? this.menuStore[0].children : []
-    // }
   },
   mounted() {
     console.log('侧边栏菜单缓存menuStore', this.menuStore)
@@ -364,8 +364,32 @@ export default {
     },
     handleChangeNav(key, keyPath, e) {
       console.log("e.$attrs['data-url']", e.$attrs['data-url'])
-      this.$router.push(e.$attrs['data-url'])
-      this.$store.commit('menu/SET_CURRENT_PAGE_ID', key)
+      const url = e.$attrs['data-url']
+      const routeName = e.$attrs['data-routes'] || e.$el.textContent
+
+      // 检查是否是粗轧看板
+      if (
+        url === '/largeScreenBoard/cuKanBan' ||
+        url === '/largeScreenBoard/jingKanban' ||
+        url === '/largeScreenBoard/juanKanBan' ||
+        url === '/largeScreenBoard/hotKanBan'
+      ) {
+        // 设置全屏模式
+        this.$store.commit('menu/SET_FULLSCREEN_MODE', true)
+        this.$store.commit('menu/SET_CURRENT_PAGE_ID', key)
+
+        // 延迟跳转，确保状态先更新
+        setTimeout(() => {
+          this.$router.push(url)
+        }, 50)
+      } else {
+        // 正常跳转
+        this.$router.push(url)
+        this.$store.commit('menu/SET_CURRENT_PAGE_ID', key)
+
+        // 确保退出全屏模式
+        this.$store.commit('menu/SET_FULLSCREEN_MODE', false)
+      }
     },
     handleCollapse() {
       this.$store.commit('menu/menuCollapse', !this.menuCollapse)
@@ -400,31 +424,38 @@ export default {
   color: #ffffff;
   letter-spacing: 3px;
   cursor: pointer;
+
   .el-icon-s-home {
     font-size: 20px;
   }
 }
+
 .el-menu {
   border-right: none;
   //padding-left: 10px;
   &:not(.el-menu--collapse) {
     width: 260px;
   }
+
   .el-menu-item {
     font-size: 16px;
     letter-spacing: 2px;
   }
 }
+
 /deep/ .el-menu-demo {
   > div > .el-menu-item {
     padding-left: 30px !important;
   }
+
   > div > .el-submenu > .el-submenu__title {
     padding-left: 30px !important;
   }
+
   > div > .el-submenu > .el-menu > div > .el-submenu > .el-submenu__title {
     padding-left: 40px !important;
   }
+
   > div
     > .el-submenu
     > .el-menu
@@ -444,6 +475,7 @@ export default {
     > .el-submenu__title {
     padding-left: 48px !important;
   }
+
   > div
     > .el-submenu
     > .el-menu
@@ -457,6 +489,7 @@ export default {
     > .el-menu-item {
     padding-left: 60px !important;
   }
+
   > div
     > .el-submenu
     > .el-menu
@@ -471,6 +504,7 @@ export default {
     > .el-submenu__title {
     padding-left: 60px !important;
   }
+
   > div
     > .el-submenu
     > .el-menu
@@ -502,6 +536,7 @@ export default {
     > .el-submenu__title {
     padding-left: 94px !important;
   }
+
   > div
     > .el-submenu
     > .el-menu
@@ -536,19 +571,22 @@ export default {
     .el-menu-item {
     background-color: #153617 !important;
   }
+
   &.el-menu--collapse {
     > div > .el-menu-item {
       padding-left: 20px !important;
     }
+
     > div > .el-submenu > .el-submenu__title {
       padding-left: 16px !important;
     }
   }
 }
 
-/deep/.el-menu .el-menu-item {
+/deep/ .el-menu .el-menu-item {
   transition: border ease-in-out 0.3s;
   background: transparent !important;
+
   &:hover:before {
     content: '';
     position: absolute;
@@ -560,6 +598,7 @@ export default {
     background-color: #36a03c;
     z-index: 1;
   }
+
   span {
     position: relative;
     z-index: 999;
@@ -568,6 +607,7 @@ export default {
 
 /deep/ .el-menu .el-menu-item.is-active {
   color: #f2f2f2;
+
   &:before {
     content: '';
     position: absolute;
@@ -580,14 +620,18 @@ export default {
     z-index: 1;
   }
 }
+
 /deep/ .el-menu-item.is-active {
   background-color: transparent !important;
 }
+
 /deep/ .el-submenu__title {
 }
+
 /deep/ .el-menu--collapse .el-menu-item.is-active:before {
   display: none;
 }
+
 /deep/
   .el-menu--collapse
   .el-submenu
@@ -595,6 +639,7 @@ export default {
   .el-submenu__icon-arrow {
   display: none;
 }
+
 /deep/ .el-menu--collapse .el-menu-item span,
 /deep/ .el-menu--collapse .el-submenu .el-submenu__title span {
   height: 0;
@@ -603,12 +648,15 @@ export default {
   visibility: hidden;
   display: inline-block;
 }
+
 /deep/ .el-menu--popup .el-submenu__title {
   background-color: transparent !important;
 }
+
 /deep/ .is-opened > .el-submenu__title span {
   position: relative;
 }
+
 /deep/ .is-opened > .el-submenu__title span:before {
   content: '';
   position: absolute;
@@ -620,10 +668,12 @@ export default {
   top: 50%;
   margin-top: -4px;
 }
+
 .side-wrapper {
   height: 100%;
   position: relative;
   background: #153617;
+
   .collapse-btn {
     width: 100%;
     height: 56px;
@@ -635,43 +685,56 @@ export default {
     color: #fff;
     cursor: pointer;
   }
+
   .menu-box {
     height: calc(100% - 56px);
     overflow: auto;
   }
 }
+
 .menu-box {
   /*滚动条样式 chrome内核*/
   /*定义滚动条宽高及背景，宽高分别对应横竖滚动条的尺寸*/
+
   &::-webkit-scrollbar {
     width: 6px; /*对垂直流动条有效*/
     height: 6px; /*对水平流动条有效*/
   }
+
   /*定义滚动条的轨道颜色、内阴影及圆角*/
+
   &::-webkit-scrollbar-track {
     -webkit-box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.15);
     border-radius: 3px;
   }
+
   /*定义滑块颜色、内阴影及圆角*/
+
   &::-webkit-scrollbar-thumb {
     border-radius: 7px;
     -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.15);
     background: #c1cbdb;
   }
+
   /*定义两端按钮的样式*/
+
   &::-webkit-scrollbar-button {
     display: none;
   }
+
   /*定义右下角汇合处的样式*/
+
   &::-webkit-scrollbar-corner {
     display: none;
   }
 }
+
 //---侧边栏收缩后宽度变为56px，且图标居中展示----
 .side-wrapper {
   height: 100%;
   position: relative;
   background: #153617;
+
   .collapse-btn {
     width: 100%;
     height: 56px;
@@ -683,6 +746,7 @@ export default {
     color: #fff;
     cursor: pointer;
   }
+
   .menu-box {
     height: calc(100% - 56px);
     overflow: auto;
@@ -695,6 +759,7 @@ export default {
   &:not(.el-menu--collapse) {
     width: 260px;
   }
+
   .el-menu-item {
     font-size: 16px;
     letter-spacing: 2px;

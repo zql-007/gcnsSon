@@ -1,7 +1,7 @@
 const redirectList = [
   {
     path: '/',
-    redirect: '/productService/steelmakingProcess'
+    redirect: '/EquipPrecisManage/divisionalBoard'
   }
 ]
 export default function({ isHMR, app, store, route, params, error, redirect }) {
